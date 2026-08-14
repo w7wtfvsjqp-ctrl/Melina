@@ -109,15 +109,16 @@
   }
   .eyebrow .hexdot{ width:8px;height:8px; background:var(--yellow); clip-path: polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
 
-  /* ---------- Home status hero ---------- */
+  /* ---------- Home status hero (anel de previsão) ---------- */
   .status-hero{
     background: linear-gradient(160deg, var(--black) 0%, #322c22 100%);
     color:var(--white);
     border-radius: 22px;
-    padding:24px 20px;
+    padding:18px 20px 16px;
     position:relative;
     overflow:hidden;
-    margin-bottom:18px;
+    margin-bottom:14px;
+    text-align:center;
   }
   .status-hero::before{
     content:"";
@@ -125,15 +126,109 @@
     background: conic-gradient(from 0deg, var(--yellow), transparent 40%);
     opacity:.18; border-radius:50%;
   }
-  .status-hero .state-label{ font-size:.75rem; text-transform:uppercase; letter-spacing:.6px; color:var(--yellow); font-weight:800; }
-  .status-hero .state-big{ font-family:'Fredoka'; font-size:1.9rem; margin:6px 0 2px; }
-  .status-hero .state-sub{ font-size:.85rem; color:rgba(255,253,247,0.75); }
-  .status-hero .countdown{
-    margin-top:16px; display:flex; align-items:baseline; gap:8px;
+  .hero-top-row{ display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
+  .hero-avatar{
+    width:36px;height:36px;border-radius:50%; background:var(--yellow); color:var(--black);
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;
   }
-  .status-hero .countdown .num{ font-family:'Fredoka'; font-size:2.3rem; color:var(--yellow); }
-  .status-hero .countdown .unit{ font-size:.8rem; color:rgba(255,253,247,0.7); }
-  .hero-actions{ display:flex; gap:10px; margin-top:18px; }
+  .status-hero .state-label{ font-size:.72rem; text-transform:uppercase; letter-spacing:.6px; color:var(--yellow); font-weight:800; }
+  .alarm-toggle{
+    width:36px;height:36px;border-radius:50%; background:rgba(255,253,247,0.12); border:1px solid rgba(255,253,247,0.25);
+    color:var(--white); font-size:1.05rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .alarm-toggle.active{ background:var(--yellow); color:var(--black); border-color:var(--yellow); }
+  .status-hero .state-sub{ font-size:.8rem; color:rgba(255,253,247,0.7); margin-top:10px; }
+
+  .ring-wrap{
+    position:relative; width:210px; height:210px; margin:10px auto 6px;
+  }
+  .ring-svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .ring-bg{ fill:none; stroke:rgba(255,253,247,0.12); stroke-width:10; }
+  .ring-fg{
+    fill:none; stroke:var(--yellow); stroke-width:10; stroke-linecap:round;
+    stroke-dasharray:540.35; stroke-dashoffset:540.35;
+    transition: stroke-dashoffset .6s ease;
+  }
+  .ring-center{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    pointer-events:none;
+  }
+  .ring-center .state-big{ font-family:'Fredoka'; font-size:.95rem; color:rgba(255,253,247,0.85); max-width:140px; }
+  .ring-center .countdown{ display:flex; align-items:baseline; gap:4px; }
+  .ring-center .num{ font-family:'Fredoka'; font-size:2.4rem; color:var(--yellow); line-height:1; }
+  .ring-center .unit{ font-size:.66rem; color:rgba(255,253,247,0.65); max-width:140px; line-height:1.3; }
+
+  .ring-markers{ position:absolute; inset:0; pointer-events:none; }
+  .ring-marker{
+    position:absolute; transform:translate(-50%,-50%);
+    background:rgba(255,253,247,0.08); border:1px dashed rgba(255,198,41,0.55); border-radius:16px;
+    padding:3px 7px; display:flex; align-items:center; gap:3px; font-size:.6rem; color:var(--yellow); white-space:nowrap;
+  }
+  .ring-marker .rm-ico{ font-size:.7rem; }
+
+  .ring-bounds{ display:flex; justify-content:space-between; padding:0 6px; margin-top:2px; }
+  .rb-item{ display:flex; align-items:center; gap:5px; font-size:.72rem; color:rgba(255,253,247,0.75); }
+  .rb-item .ico{ font-size:.85rem; }
+
+  .hero-quick-row{ display:flex; justify-content:center; gap:14px; margin-top:16px; }
+  .hero-quick-row button{
+    width:44px;height:44px;border-radius:50%; background:rgba(255,253,247,0.1); border:1px solid rgba(255,253,247,0.2);
+    font-size:1.15rem; display:flex; align-items:center; justify-content:center; color:var(--white);
+  }
+  .hero-quick-row button:active{ background:var(--yellow); }
+  .hero-quick-row button.on{ background:var(--yellow); }
+
+  .mini-bar{
+    display:flex; align-items:center; gap:10px; background:rgba(255,253,247,0.08); border:1px solid rgba(255,253,247,0.15);
+    border-radius:14px; padding:10px 12px; margin-top:16px;
+  }
+  .mini-bar .mini-ico{ font-size:1.2rem; flex-shrink:0; }
+  .mini-info{ flex:1; text-align:left; }
+  .mini-info b{ font-size:.75rem; display:block; margin-bottom:4px; font-weight:800; }
+  .mini-track{ height:5px; border-radius:6px; background:rgba(255,253,247,0.15); overflow:hidden; }
+  .mini-fill{ height:100%; background:var(--yellow); width:0%; transition: width .6s ease; }
+  .mini-play{
+    width:34px;height:34px;border-radius:50%; background:var(--yellow); color:var(--black); font-size:.9rem; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .alarm-banner{
+    position:fixed; top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
+    width:calc(100% - 32px); max-width:448px; background:var(--black); color:var(--white); border:2px solid var(--yellow);
+    border-radius:16px; padding:12px 14px; display:flex; align-items:center; gap:10px; z-index:200;
+    box-shadow:0 10px 30px rgba(0,0,0,.35); animation: slideUp .25s ease;
+  }
+  .alarm-banner.hidden{ display:none; }
+  .alarm-banner .ico{ font-size:1.4rem; }
+  .alarm-banner b{ font-size:.85rem; display:block; }
+  .alarm-banner span{ font-size:.72rem; color:rgba(255,253,247,0.75); }
+  .alarm-banner button{ margin-left:auto; background:none; color:var(--yellow); font-size:1rem; font-weight:900; }
+
+  .notif-preview{
+    display:flex; gap:10px; align-items:flex-start; text-align:left;
+    background:var(--white); border-radius:16px; padding:12px 14px; margin-bottom:16px;
+    box-shadow: var(--shadow); border:1px solid var(--line);
+  }
+  .notif-preview .notif-ico{
+    width:34px;height:34px;border-radius:50%; background:var(--black); color:var(--yellow);
+    display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;
+  }
+  .notif-preview b{ font-size:.8rem; display:block; }
+  .notif-preview p{ font-size:.75rem; color:#5c563f; margin:2px 0 0; line-height:1.4; }
+  .notif-preview.hidden{ display:none; }
+
+  /* ---------- Status grid (acompanhe tudo) ---------- */
+  .status-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:18px; }
+  .status-card{
+    background:var(--yellow-pale); border:1px solid var(--line); border-radius:18px; padding:14px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;
+  }
+  .status-card .ico{
+    width:42px;height:42px;border-radius:50%; background:var(--white);
+    display:flex; align-items:center; justify-content:center; font-size:1.25rem; box-shadow: var(--shadow);
+  }
+  .status-card b{ font-size:.78rem; }
+  .status-card .ago{ font-size:.66rem; color:#7a7364; font-weight:700; }
 
   button{ font-family:inherit; cursor:pointer; border:none; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
   .btn{
@@ -164,12 +259,15 @@
   /* ---------- Tracker ---------- */
   .type-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
   .type-btn{
-    background:var(--white); border:2px solid var(--black); border-radius:16px;
-    padding:14px 6px; display:flex; flex-direction:column; align-items:center; gap:6px;
+    background:var(--white); border:1px solid var(--line); border-radius:16px;
+    padding:14px 6px; display:flex; flex-direction:column; align-items:center; gap:8px; box-shadow: var(--shadow);
   }
-  .type-btn .ico{ font-size:1.5rem; }
+  .type-btn .ico{
+    width:38px;height:38px; border-radius:50%; background:var(--yellow-pale);
+    display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+  }
   .type-btn span{ font-size:.7rem; font-weight:800; }
-  .type-btn:active{ background:var(--yellow); }
+  .type-btn:active .ico{ background:var(--yellow); }
 
   .event-item{
     display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--line);
@@ -191,19 +289,29 @@
   /* ---------- Trends ---------- */
   .chart-wrap{ position:relative; height:220px; }
   .legend-note{ font-size:.72rem; color:#8a8272; margin-top:8px; }
+  .trend-avg{
+    text-align:center; font-size:.8rem; font-weight:800; color:var(--charcoal);
+    background:var(--yellow-pale); border-radius:12px; padding:8px; margin-top:12px;
+  }
+  .trend-avg b{ color:var(--yellow-deep); font-family:'Fredoka'; }
 
   /* ---------- Sounds ---------- */
   .sound-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
   .sound-card{
-    background:var(--white); border:1px solid var(--line); border-radius:18px; padding:14px;
+    background:var(--white); border:1px solid var(--line); border-radius:18px; padding:16px 14px;
     text-align:center; position:relative; box-shadow: var(--shadow);
   }
   .sound-card.playing{ background:var(--black); color:var(--white); border-color:var(--black); }
-  .sound-card .ico{ font-size:1.8rem; display:block; margin-bottom:6px; }
+  .sound-card .blob{
+    width:56px;height:56px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;
+    font-size:1.7rem; background: radial-gradient(circle at 30% 30%, var(--yellow-pale), var(--yellow) 70%);
+    box-shadow: inset 0 -6px 10px rgba(26,23,18,0.12);
+  }
+  .sound-card.playing .blob{ background: radial-gradient(circle at 30% 30%, #FFF4D6, #E8A400 75%); }
   .sound-card b{ font-size:.8rem; display:block; margin-bottom:2px; }
-  .sound-card span.desc{ font-size:.65rem; opacity:.7; display:block; margin-bottom:10px; }
+  .sound-card span.desc{ font-size:.65rem; opacity:.7; display:block; margin-bottom:12px; }
   .sound-toggle{
-    width:100%; padding:8px; border-radius:10px; background:var(--yellow); color:var(--black); font-weight:800; font-size:.72rem;
+    width:100%; padding:9px; border-radius:12px; background:var(--yellow); color:var(--black); font-weight:800; font-size:.72rem;
   }
   .sound-card.playing .sound-toggle{ background:var(--yellow); }
 
@@ -220,15 +328,27 @@
   .sound-controls .stopbtn{ background:var(--yellow); color:var(--black); border-radius:50%; width:36px;height:36px; font-weight:900; }
 
   /* ---------- Courses ---------- */
-  .chapter{
-    background:var(--white); border:1px solid var(--line); border-radius:16px; margin-bottom:12px; overflow:hidden; box-shadow: var(--shadow);
+  .course-progress-wrap{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .course-progress-track{ flex:1; height:8px; border-radius:8px; background:var(--yellow-pale); overflow:hidden; }
+  .course-progress-bar{ height:100%; background:var(--yellow); border-radius:8px; width:0%; transition: width .4s ease; }
+  .course-progress-label{ font-size:.75rem; font-weight:800; color:var(--yellow-deep); flex-shrink:0; }
+
+  .timeline{ position:relative; padding-left:34px; }
+  .timeline::before{
+    content:""; position:absolute; left:14px; top:6px; bottom:6px; width:2px; background:var(--line);
+  }
+  .chapter{ position:relative; margin-bottom:14px; }
+  .chapter-num{
+    position:absolute; left:-34px; top:14px; width:30px;height:30px; border-radius:50%; background:var(--white);
+    border:2px solid var(--yellow); color:var(--black); font-family:'Fredoka'; font-weight:700;
+    display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; z-index:2;
+  }
+  .chapter.read .chapter-num{ background:var(--yellow); }
+  .chapter-card{
+    background:var(--white); border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow: var(--shadow);
   }
   .chapter-head{
     padding:14px 16px; display:flex; align-items:center; gap:12px; width:100%; background:none; text-align:left;
-  }
-  .chapter-num{
-    width:30px;height:30px; border-radius:50%; background:var(--yellow); color:var(--black); font-family:'Fredoka'; font-weight:700;
-    display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0;
   }
   .chapter-head b{ font-size:.85rem; flex:1; }
   .chapter-head .chev{ transition: transform .2s ease; font-size:.8rem; color:#8a8272; }
@@ -281,6 +401,12 @@
 </head>
 <body>
 <div id="app">
+
+  <div class="alarm-banner hidden" id="alarm-banner">
+    <span class="ico">🐝</span>
+    <div><b>Hora da soneca!</b><span>O horário previsto chegou.</span></div>
+    <button onclick="dismissAlarmBanner()">✕</button>
+  </div>
 
   <!-- ONBOARDING -->
   <div id="onboarding" class="modal-overlay">
@@ -335,25 +461,53 @@
     <!-- HOME -->
     <section id="view-home" class="view active">
       <div class="status-hero">
-        <div class="state-label" id="home-state-label">STATUS ATUAL</div>
-        <div class="state-big" id="home-state-big">Carregando…</div>
-        <div class="state-sub" id="home-state-sub">—</div>
-        <div class="countdown">
-          <div class="num" id="home-countdown-num">--</div>
-          <div class="unit" id="home-countdown-unit">min até a próxima soneca prevista</div>
+        <div class="hero-top-row">
+          <div class="hero-avatar" id="hero-avatar">🐝</div>
+          <div class="state-label" id="home-state-label">STATUS ATUAL</div>
+          <button class="alarm-toggle" id="alarm-toggle" onclick="toggleAlarm()" title="Ativar alarme de soneca">🔕</button>
         </div>
-        <div class="hero-actions">
-          <button class="btn btn-primary" id="home-main-action" onclick="toggleSleepFromHome()">Iniciar soneca</button>
-          <button class="btn btn-ghost" onclick="openEventModal('diaper')">+ Fralda</button>
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 210 210">
+            <circle class="ring-bg" cx="105" cy="105" r="86"></circle>
+            <circle class="ring-fg" id="ring-progress" cx="105" cy="105" r="86"></circle>
+          </svg>
+          <div class="ring-markers" id="ring-markers"></div>
+          <div class="ring-center">
+            <div class="state-big" id="home-state-big">Carregando…</div>
+            <div class="countdown"><span class="num" id="home-countdown-num">--</span></div>
+            <div class="unit" id="home-countdown-unit">min até a próxima soneca prevista</div>
+          </div>
+        </div>
+        <div class="ring-bounds">
+          <div class="rb-item"><span class="ico">🌅</span><span id="ring-wake-time">—</span></div>
+          <div class="rb-item"><span class="ico">🌙</span><span id="ring-bed-time">—</span></div>
+        </div>
+        <div class="state-sub" id="home-state-sub">—</div>
+
+        <div class="hero-quick-row">
+          <button onclick="openEventModal('feed')" title="Alimentação">🍼</button>
+          <button onclick="openEventModal('diaper')" title="Fralda">🧷</button>
+          <button onclick="openEventModal('pump')" title="Extração">🫙</button>
+          <button onclick="openEventModal('med')" title="Remédio">💊</button>
+        </div>
+
+        <div class="mini-bar">
+          <span class="mini-ico" id="mini-ico">☀️</span>
+          <div class="mini-info">
+            <b id="mini-label">Carregando…</b>
+            <div class="mini-track"><div class="mini-fill" id="mini-fill"></div></div>
+          </div>
+          <button class="mini-play" id="mini-play" onclick="toggleSleepFromHome()">▶</button>
         </div>
       </div>
 
-      <div class="quick-grid">
-        <button class="quick-item" onclick="openEventModal('feed')"><span class="ico">🍼</span><span>Alimentação</span></button>
-        <button class="quick-item" onclick="openEventModal('diaper')"><span class="ico">🧷</span><span>Fralda</span></button>
-        <button class="quick-item" onclick="openEventModal('pump')"><span class="ico">🫙</span><span>Extração</span></button>
-        <button class="quick-item" onclick="openEventModal('med')"><span class="ico">💊</span><span>Remédio</span></button>
+      <div class="notif-preview hidden" id="home-notif">
+        <div class="notif-ico">🐝</div>
+        <div><b id="home-notif-title">—</b><p id="home-notif-body">—</p></div>
       </div>
+
+      <div class="eyebrow" style="margin-bottom:8px;"><span class="hexdot"></span>Acompanhe sono, alimentação e mais</div>
+      <div class="status-grid" id="home-status-grid"></div>
 
       <div class="card">
         <div class="eyebrow"><span class="hexdot"></span>Resumo de hoje</div>
@@ -396,6 +550,7 @@
       <div class="card">
         <div class="eyebrow"><span class="hexdot"></span>Horas de sono · últimos 7 dias</div>
         <div class="chart-wrap"><canvas id="chart-sleep"></canvas></div>
+        <div class="trend-avg" id="trend-avg-sleep">Média: <b>—</b></div>
       </div>
       <div class="card">
         <div class="eyebrow"><span class="hexdot"></span>Atividades de hoje</div>
@@ -419,7 +574,11 @@
     <section id="view-courses" class="view">
       <h3 style="margin:0 0 4px;">Curso Melina de sono</h3>
       <p class="legend-note" style="margin-bottom:14px;">Conteúdo educativo em capítulos curtos.</p>
-      <div id="chapters"></div>
+      <div class="course-progress-wrap">
+        <div class="course-progress-track"><div class="course-progress-bar" id="course-progress-bar"></div></div>
+        <span class="course-progress-label" id="course-progress-label">0%</span>
+      </div>
+      <div class="timeline" id="chapters"></div>
     </section>
 
   </main>
@@ -487,6 +646,8 @@
 
 const STORAGE_KEY = 'melinaAppState_v1';
 let state = loadState();
+if(!state.courseRead) state.courseRead = {};
+if(state.alarmEnabled === undefined) state.alarmEnabled = false;
 let editingSubtype = null;
 
 function loadState(){
@@ -718,9 +879,139 @@ function renderAll(){
   if(!state.baby) return;
   document.getElementById('tb-name').textContent = state.baby.icon + ' ' + state.baby.name;
   document.getElementById('tb-age').textContent = ageLabel(state.baby.birth);
+  document.getElementById('hero-avatar').textContent = state.baby.icon || '🐝';
+  updateAlarmBtn();
   renderHome();
   renderTracker();
   if(document.getElementById('view-trends').classList.contains('active')) renderCharts();
+}
+
+const RING_CIRCUMFERENCE = 540.35;
+function setRing(percent){
+  const ring = document.getElementById('ring-progress');
+  if(!ring) return;
+  const p = Math.max(0, Math.min(1, percent));
+  ring.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - p);
+}
+
+/* ---------- Previsão de agenda do dia (próximas sonecas + hora de dormir) ---------- */
+function estimateNapDuration(){
+  const naps = state.events.filter(e=>e.type==='nap' && e.end).slice(-6);
+  if(!naps.length) return 45;
+  const durs = naps.map(e=> (new Date(e.end)-new Date(e.start))/60000);
+  return Math.round(durs.reduce((a,b)=>a+b,0)/durs.length);
+}
+function estimateBedtime(){
+  const nights = state.events.filter(e=>e.type==='night').slice(-6);
+  if(!nights.length) return {h:19,m:30};
+  const hours = nights.map(e=>{ const d=new Date(e.start); return d.getHours()+d.getMinutes()/60; });
+  const avg = hours.reduce((a,b)=>a+b,0)/hours.length;
+  return { h:Math.floor(avg), m:Math.round((avg-Math.floor(avg))*60) };
+}
+function todayWakeTime(){
+  const todays = state.events.filter(e=> e.type==='night' && e.end && isToday(e.end));
+  if(!todays.length) return null;
+  const last = todays.sort((a,b)=> new Date(b.end)-new Date(a.end))[0];
+  return new Date(last.end);
+}
+function predictSchedule(){
+  if(!state.baby) return { windows:[], bedtime:null };
+  const pred = predictNextSleep();
+  const napDur = estimateNapDuration();
+  const bed = estimateBedtime();
+  const bedToday = new Date(); bedToday.setHours(bed.h, bed.m, 0, 0);
+  const windows = [];
+  if(pred){
+    let t = pred.predicted;
+    let guard = 0;
+    while(t < bedToday && guard < 3){
+      windows.push({ time:new Date(t), type:'nap' });
+      const napEnd = new Date(t.getTime() + napDur*60000);
+      t = new Date(napEnd.getTime() + pred.ww*60000);
+      guard++;
+    }
+  }
+  return { windows: windows.slice(0,2), bedtime: bedToday };
+}
+function renderRingMarkers(schedule){
+  const wrap = document.getElementById('ring-markers');
+  const items = [...schedule.windows];
+  if(schedule.bedtime) items.push({ time:schedule.bedtime, type:'bed' });
+  if(!items.length){ wrap.innerHTML=''; return; }
+  const angles = [-58,0,58].slice(0, items.length);
+  wrap.innerHTML = items.map((w,i)=>{
+    const rad = angles[i] * Math.PI/180;
+    const r = 96;
+    const x = 105 + r*Math.sin(rad);
+    const y = 105 - r*Math.cos(rad);
+    const icon = w.type==='bed' ? '🌙' : '☀️';
+    return `<div class="ring-marker" style="left:${x}px; top:${y}px;"><span class="rm-ico">${icon}</span><span>${fmtTime(w.time.toISOString())}</span></div>`;
+  }).join('');
+}
+
+/* ---------- Alarme (som + notificação do navegador) ---------- */
+let alarmTimer = null;
+let lastAlarmFiredFor = null;
+function toggleAlarm(){
+  if(!state.alarmEnabled){
+    if('Notification' in window && Notification.permission === 'default'){
+      Notification.requestPermission().then(()=>{
+        state.alarmEnabled = true; saveState(); updateAlarmBtn(); renderHome();
+      });
+      return;
+    }
+    state.alarmEnabled = true;
+  } else {
+    state.alarmEnabled = false;
+  }
+  saveState();
+  updateAlarmBtn();
+  renderHome();
+}
+function updateAlarmBtn(){
+  const b = document.getElementById('alarm-toggle');
+  if(!b) return;
+  b.textContent = state.alarmEnabled ? '🔔' : '🔕';
+  b.classList.toggle('active', !!state.alarmEnabled);
+}
+function scheduleAlarm(pred){
+  if(alarmTimer){ clearTimeout(alarmTimer); alarmTimer = null; }
+  if(!state.alarmEnabled || !pred) return;
+  const target = pred.predicted.getTime();
+  const msUntil = target - Date.now();
+  const key = pred.predicted.toISOString();
+  if(msUntil <= 0){
+    if(lastAlarmFiredFor !== key) fireAlarm(pred, key);
+    return;
+  }
+  alarmTimer = setTimeout(()=> fireAlarm(pred, key), msUntil);
+}
+function fireAlarm(pred, key){
+  lastAlarmFiredFor = key;
+  playChime();
+  document.getElementById('alarm-banner').classList.remove('hidden');
+  if('Notification' in window && Notification.permission === 'granted'){
+    try{
+      new Notification('🐝 Hora da soneca!', {
+        body: (state.baby ? state.baby.name : 'Seu bebê') + ' está no horário previsto para dormir.',
+        tag: 'melina-nap-alarm'
+      });
+    }catch(e){}
+  }
+}
+function dismissAlarmBanner(){ document.getElementById('alarm-banner').classList.add('hidden'); }
+function playChime(){
+  try{
+    const ctx = ensureAudio();
+    [880,1108,1318].forEach((f,i)=>{
+      const osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+      const g = ctx.createGain();
+      const t = ctx.currentTime + i*0.18;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.4,t+0.02); g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t); osc.stop(t+0.4);
+    });
+  }catch(e){}
 }
 
 function renderHome(){
@@ -731,7 +1022,18 @@ function renderHome(){
   const sub = document.getElementById('home-state-sub');
   const num = document.getElementById('home-countdown-num');
   const unit = document.getElementById('home-countdown-unit');
-  const mainBtn = document.getElementById('home-main-action');
+  const notif = document.getElementById('home-notif');
+  const miniLabel = document.getElementById('mini-label');
+  const miniFill = document.getElementById('mini-fill');
+  const miniIco = document.getElementById('mini-ico');
+  const miniPlay = document.getElementById('mini-play');
+
+  notif.classList.add('hidden');
+
+  const schedule = predictSchedule();
+  renderRingMarkers(schedule);
+  document.getElementById('ring-wake-time').textContent = (()=>{ const w = todayWakeTime(); return w ? fmtTime(w.toISOString()) : '—'; })();
+  document.getElementById('ring-bed-time').textContent = schedule.bedtime ? fmtTime(schedule.bedtime.toISOString()) : '—';
 
   if(current){
     stateLabel.textContent = current.type==='night' ? 'DORMINDO (NOITE)' : 'COCHILANDO';
@@ -739,20 +1041,44 @@ function renderHome(){
     sub.textContent = 'Toque em "Acordou" quando ela(e) despertar.';
     num.textContent = fmtDur(new Date()-new Date(current.start));
     unit.textContent = 'tempo de sono até agora';
-    mainBtn.textContent = 'Acordou 🌤️';
+    setRing(1);
+    miniIco.textContent = '😴';
+    miniLabel.textContent = 'Dormindo há ' + fmtDur(new Date()-new Date(current.start));
+    miniFill.style.width = '100%';
+    miniPlay.textContent = '■';
+    scheduleAlarm(null);
   } else {
     stateLabel.textContent = 'STATUS ATUAL';
     big.textContent = '🐝 Acordado(a)';
     const awakeSince = pred ? pred.awakeSince : null;
     sub.textContent = awakeSince ? 'Acordado(a) desde ' + fmtTime(awakeSince.toISOString()) : 'Comece registrando a primeira soneca.';
+    miniIco.textContent = '☀️';
+    miniPlay.textContent = '▶';
     if(pred){
       const diffMin = Math.round((pred.predicted - new Date())/60000);
-      if(diffMin <= 0){ num.textContent='Agora'; unit.textContent='janela de sono ideal já começou'; }
-      else { num.textContent = diffMin; unit.textContent = 'min até a próxima soneca prevista (~'+fmtTime(pred.predicted.toISOString())+')'; }
+      const elapsedMin = pred.ww - diffMin;
+      setRing(elapsedMin / pred.ww);
+      miniFill.style.width = Math.max(0,Math.min(100, (elapsedMin/pred.ww)*100)) + '%';
+      if(diffMin <= 0){
+        num.textContent='Agora'; unit.textContent='janela de sono ideal já começou';
+        miniLabel.textContent = 'Soneca prevista agora';
+      } else {
+        num.textContent = diffMin; unit.textContent = 'min até a próxima soneca prevista (~'+fmtTime(pred.predicted.toISOString())+')';
+        miniLabel.textContent = 'Soneca em '+diffMin+' min · '+fmtTime(pred.predicted.toISOString());
+        if(diffMin <= 30){
+          document.getElementById('home-notif-title').textContent = (state.baby.icon||'🐝') + ' ' + state.baby.name + ' está começando a ficar cansado(a)…';
+          document.getElementById('home-notif-body').textContent = diffMin+' min para a soneca! Evite atividades agitadas e fique de olho nos sinais de sono 🧸';
+          notif.classList.remove('hidden');
+        }
+      }
+      scheduleAlarm(pred);
     } else {
       num.textContent='--'; unit.textContent='registre um sono para começar as previsões';
+      miniLabel.textContent = 'Registre uma soneca para começar as previsões';
+      miniFill.style.width='0%';
+      setRing(0);
+      scheduleAlarm(null);
     }
-    mainBtn.textContent = 'Iniciar soneca';
   }
 
   // today's summary
@@ -767,6 +1093,8 @@ function renderHome(){
   document.getElementById('sum-naps').textContent = naps;
   document.getElementById('sum-feeds').textContent = state.events.filter(e=>e.type==='feed' && isToday(e.start)).length;
 
+  renderStatusGrid();
+
   // recent list (last 4)
   const recentWrap = document.getElementById('home-recent');
   const recent = [...state.events].sort((a,b)=> new Date(b.start)-new Date(a.start)).slice(0,4);
@@ -778,6 +1106,30 @@ function renderHome(){
       return `<div class="event-item"><div class="event-ico">${TYPE_ICONS[e.type]}</div><div class="event-info"><b>${d.label}</b><span>${d.time}</span></div></div>`;
     }).join('');
   }
+}
+
+/* grade "acompanhe tudo" — inspirada no resumo por categoria, com identidade Melina */
+const STATUS_GRID_TYPES = ['nap','night','feed','diaper','pump','med'];
+function timeAgoLabel(type){
+  const evs = state.events.filter(e=>e.type===type).sort((a,b)=> new Date(b.start)-new Date(a.start));
+  if(!evs.length) return 'Não registrado hoje';
+  const last = evs[0];
+  if(!isToday(last.start)) return 'Não registrado hoje';
+  const min = Math.round((new Date() - new Date(last.start))/60000);
+  if(min < 1) return 'agora mesmo';
+  if(min < 60) return min+' min atrás';
+  const h = Math.floor(min/60);
+  return h+'h '+(min%60)+'min atrás';
+}
+function renderStatusGrid(){
+  const grid = document.getElementById('home-status-grid');
+  grid.innerHTML = STATUS_GRID_TYPES.map(t=>`
+    <button class="status-card" onclick="openEventModal('${t}')">
+      <span class="ico">${TYPE_ICONS[t]}</span>
+      <b>${TYPE_LABELS[t]}</b>
+      <span class="ago">${timeAgoLabel(t)}</span>
+    </button>
+  `).join('');
 }
 
 function renderTracker(){
@@ -820,11 +1172,20 @@ function renderCharts(){
 
   const ctx1 = document.getElementById('chart-sleep');
   if(chartSleep) chartSleep.destroy();
+  const gradient = ctx1.getContext('2d').createLinearGradient(0,0,0,220);
+  gradient.addColorStop(0, 'rgba(255,198,41,0.55)');
+  gradient.addColorStop(1, 'rgba(255,198,41,0.02)');
   chartSleep = new Chart(ctx1, {
-    type:'bar',
-    data:{ labels:dayLabels, datasets:[{ label:'Horas de sono', data:sleepHours, backgroundColor:'#FFC629', borderRadius:6 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#eee'}}, x:{grid:{display:false}} } }
+    type:'line',
+    data:{ labels:dayLabels, datasets:[{ label:'Horas de sono', data:sleepHours,
+      borderColor:'#1A1712', backgroundColor:gradient, fill:true, tension:.4,
+      pointRadius:4, pointBackgroundColor:'#FFC629', pointBorderColor:'#1A1712', pointBorderWidth:2, borderWidth:3 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true, grid:{color:'#f0ece0'}}, x:{grid:{display:false}} } }
   });
+  const avgSleep = sleepHours.length ? (sleepHours.reduce((a,b)=>a+b,0)/sleepHours.length) : 0;
+  const avgH = Math.floor(avgSleep), avgM = Math.round((avgSleep-avgH)*60);
+  document.getElementById('trend-avg-sleep').innerHTML = 'Média: <b>'+avgH+'h'+(avgM?' '+avgM+'min':'')+'</b>';
 
   // today's activity distribution
   const todays = state.events.filter(e=> isToday(e.start));
@@ -848,9 +1209,9 @@ function renderCharts(){
   const ctx3 = document.getElementById('chart-wakings');
   if(chartWakings) chartWakings.destroy();
   chartWakings = new Chart(ctx3, {
-    type:'line',
-    data:{ labels:dayLabels, datasets:[{ label:'Despertares', data:wakings, borderColor:'#1A1712', backgroundColor:'#FFC629', tension:.3, fill:true, pointRadius:4 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, ticks:{stepSize:1}, grid:{color:'#eee'}}, x:{grid:{display:false}} } }
+    type:'bar',
+    data:{ labels:dayLabels, datasets:[{ label:'Despertares', data:wakings, backgroundColor:'#1A1712', borderRadius:6, maxBarThickness:26 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, ticks:{stepSize:1}, grid:{color:'#f0ece0'}}, x:{grid:{display:false}} } }
   });
 }
 
@@ -872,7 +1233,7 @@ function renderSounds(){
   const grid = document.getElementById('sound-grid');
   grid.innerHTML = SOUNDS.map(s=>`
     <div class="sound-card" id="sc-card-${s.id}">
-      <span class="ico">${s.icon}</span>
+      <span class="blob">${s.icon}</span>
       <b>${s.name}</b>
       <span class="desc">${s.desc}</span>
       <button class="sound-toggle" onclick="toggleSound('${s.id}')">▶ Tocar</button>
@@ -1090,17 +1451,35 @@ const CHAPTERS = [
 function renderChapters(){
   const wrap = document.getElementById('chapters');
   wrap.innerHTML = CHAPTERS.map((c,i)=>`
-    <div class="chapter" id="chap-${i}">
-      <button class="chapter-head" onclick="toggleChapter(${i})">
-        <div class="chapter-num">${i+1}</div>
-        <b>${c.title}</b>
-        <span class="chev">▾</span>
-      </button>
-      <div class="chapter-body"><p>${c.body}</p></div>
+    <div class="chapter${state.courseRead[i]?' read':''}" id="chap-${i}">
+      <div class="chapter-num">${i+1}</div>
+      <div class="chapter-card">
+        <button class="chapter-head" onclick="toggleChapter(${i})">
+          <b>${c.title}</b>
+          <span class="chev">▾</span>
+        </button>
+        <div class="chapter-body"><p>${c.body}</p></div>
+      </div>
     </div>
   `).join('');
+  updateCourseProgress();
 }
-function toggleChapter(i){ document.getElementById('chap-'+i).classList.toggle('open'); }
+function toggleChapter(i){
+  document.getElementById('chap-'+i).classList.toggle('open');
+  if(!state.courseRead[i]){
+    state.courseRead[i] = true;
+    saveState();
+    document.getElementById('chap-'+i).classList.add('read');
+    updateCourseProgress();
+  }
+}
+function updateCourseProgress(){
+  const total = CHAPTERS.length;
+  const done = Object.keys(state.courseRead).filter(k=>state.courseRead[k]).length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('course-progress-bar').style.width = pct+'%';
+  document.getElementById('course-progress-label').textContent = pct+'%';
+}
 
 /* ---------- init ---------- */
 renderSounds();
