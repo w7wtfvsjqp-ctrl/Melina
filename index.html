@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Melina · Sono do bebê</title>
+
+<!-- PWA: ícone e instalação na tela inicial -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A1712">
+
+<!-- iOS (Safari) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Melina">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- Favicon / ícone genérico -->
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --yellow:#FFC629;
+    --yellow-deep:#E8A400;
+    --yellow-pale:#FFF4D6;
+    --black:#1A1712;
+    --charcoal:#2B271F;
+    --white:#FFFDF7;
+    --line: rgba(26,23,18,0.10);
+    --radius: 18px;
+    --shadow: 0 10px 30px rgba(26,23,18,0.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Nunito Sans', sans-serif;
+    background: var(--white);
+    color: var(--black);
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior:none;
+  }
+  h1,h2,h3,h4,.display{ font-family:'Fredoka', sans-serif; font-weight:600; letter-spacing:.2px; }
+
+  /* ---------- App shell ---------- */
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    background:var(--white);
+    position:relative;
+    box-shadow: 0 0 60px rgba(0,0,0,0.06);
+  }
+
+  .hex-strip{
+    height:10px;
+    background-image: repeating-linear-gradient(135deg, var(--black) 0 8px, var(--yellow) 8px 16px);
+    opacity:.9;
+  }
+
+  header.topbar{
+    padding:18px 20px 14px;
+    background: var(--black);
+    color:var(--white);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    position:relative;
+    overflow:hidden;
+  }
+  header.topbar::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image: radial-gradient(circle at 90% -10%, rgba(255,198,41,0.25), transparent 55%);
+    pointer-events:none;
+  }
+  .bee-logo{ width:40px; height:40px; flex-shrink:0; }
+  .brand{ display:flex; flex-direction:column; line-height:1.1; }
+  .brand b{ font-family:'Fredoka'; font-size:1.35rem; color:var(--yellow); }
+  .brand span{ font-size:.72rem; color:rgba(255,253,247,0.7); font-weight:600; letter-spacing:.4px; text-transform:uppercase;}
+  .topbar-baby{ margin-left:auto; text-align:right; }
+  .topbar-baby b{ font-size:.85rem; display:block; }
+  .topbar-baby span{ font-size:.68rem; color:rgba(255,253,247,0.6); }
+
+  main{ flex:1; padding: 18px 16px 96px; }
+  .view{ display:none; animation: fadeIn .25s ease; }
+  .view.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- cards ---------- */
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    padding:18px;
+    box-shadow: var(--shadow);
+    margin-bottom:16px;
+  }
+  .card h3{ margin:0 0 10px; font-size:1rem; }
+  .eyebrow{
+    font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.6px;
+    color: var(--yellow-deep); margin-bottom:6px; display:flex; align-items:center; gap:6px;
+  }
+  .eyebrow .hexdot{ width:8px;height:8px; background:var(--yellow); clip-path: polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
+
+  /* ---------- Home status hero ---------- */
+  .status-hero{
+    background: linear-gradient(160deg, var(--black) 0%, #322c22 100%);
+    color:var(--white);
+    border-radius: 22px;
+    padding:24px 20px;
+    position:relative;
+    overflow:hidden;
+    margin-bottom:18px;
+  }
+  .status-hero::before{
+    content:"";
+    position:absolute; right:-30px; top:-30px; width:160px;height:160px;
+    background: conic-gradient(from 0deg, var(--yellow), transparent 40%);
+    opacity:.18; border-radius:50%;
+  }
+  .status-hero .state-label{ font-size:.75rem; text-transform:uppercase; letter-spacing:.6px; color:var(--yellow); font-weight:800; }
+  .status-hero .state-big{ font-family:'Fredoka'; font-size:1.9rem; margin:6px 0 2px; }
+  .status-hero .state-sub{ font-size:.85rem; color:rgba(255,253,247,0.75); }
+  .status-hero .countdown{
+    margin-top:16px; display:flex; align-items:baseline; gap:8px;
+  }
+  .status-hero .countdown .num{ font-family:'Fredoka'; font-size:2.3rem; color:var(--yellow); }
+  .status-hero .countdown .unit{ font-size:.8rem; color:rgba(255,253,247,0.7); }
+  .hero-actions{ display:flex; gap:10px; margin-top:18px; }
+
+  button{ font-family:inherit; cursor:pointer; border:none; }
+  .btn{
+    padding:12px 16px; border-radius:14px; font-weight:800; font-size:.88rem;
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    transition: transform .1s ease;
+  }
+  .btn:active{ transform: scale(.96); }
+  .btn-primary{ background:var(--yellow); color:var(--black); flex:1; }
+  .btn-ghost{ background:rgba(255,253,247,0.12); color:var(--white); border:1px solid rgba(255,253,247,0.25); flex:1; }
+  .btn-outline{ background:transparent; border:2px solid var(--black); color:var(--black); }
+  .btn-block{ width:100%; }
+  .btn-sm{ padding:8px 12px; font-size:.75rem; border-radius:10px; }
+
+  .quick-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:10px; margin-bottom:18px; }
+  .quick-item{
+    background:var(--yellow-pale); border-radius:16px; padding:12px 6px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:6px; border:1px solid var(--line);
+  }
+  .quick-item .ico{ font-size:1.3rem; }
+  .quick-item span{ font-size:.65rem; font-weight:800; color:var(--charcoal); }
+
+  .summary-row{ display:flex; gap:12px; }
+  .summary-box{ flex:1; background:var(--yellow-pale); border-radius:14px; padding:12px; text-align:center; }
+  .summary-box b{ display:block; font-family:'Fredoka'; font-size:1.25rem; }
+  .summary-box span{ font-size:.65rem; font-weight:700; color:var(--charcoal); text-transform:uppercase; }
+
+  /* ---------- Tracker ---------- */
+  .type-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
+  .type-btn{
+    background:var(--white); border:2px solid var(--black); border-radius:16px;
+    padding:14px 6px; display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .type-btn .ico{ font-size:1.5rem; }
+  .type-btn span{ font-size:.7rem; font-weight:800; }
+  .type-btn:active{ background:var(--yellow); }
+
+  .event-item{
+    display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--line);
+  }
+  .event-item:last-child{ border-bottom:none; }
+  .event-ico{
+    width:38px;height:38px; border-radius:50%; background:var(--yellow-pale);
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;
+  }
+  .event-info{ flex:1; }
+  .event-info b{ font-size:.85rem; display:block; }
+  .event-info span{ font-size:.72rem; color:#7a7364; }
+  .event-del{ background:none; color:#b5271a; font-size:.7rem; font-weight:800; padding:6px; }
+
+  .empty-state{ text-align:center; padding:30px 10px; color:#8a8272; }
+  .empty-state .ico{ font-size:2rem; margin-bottom:8px; }
+  .empty-state p{ font-size:.85rem; margin:0; }
+
+  /* ---------- Trends ---------- */
+  .chart-wrap{ position:relative; height:220px; }
+  .legend-note{ font-size:.72rem; color:#8a8272; margin-top:8px; }
+
+  /* ---------- Sounds ---------- */
+  .sound-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .sound-card{
+    background:var(--white); border:1px solid var(--line); border-radius:18px; padding:14px;
+    text-align:center; position:relative; box-shadow: var(--shadow);
+  }
+  .sound-card.playing{ background:var(--black); color:var(--white); border-color:var(--black); }
+  .sound-card .ico{ font-size:1.8rem; display:block; margin-bottom:6px; }
+  .sound-card b{ font-size:.8rem; display:block; margin-bottom:2px; }
+  .sound-card span.desc{ font-size:.65rem; opacity:.7; display:block; margin-bottom:10px; }
+  .sound-toggle{
+    width:100%; padding:8px; border-radius:10px; background:var(--yellow); color:var(--black); font-weight:800; font-size:.72rem;
+  }
+  .sound-card.playing .sound-toggle{ background:var(--yellow); }
+
+  .sound-controls{
+    position:fixed; bottom:74px; left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:448px;
+    background:var(--black); color:var(--white); border-radius:16px; padding:12px 16px;
+    display:flex; align-items:center; gap:12px; box-shadow:0 10px 30px rgba(0,0,0,.3); z-index:40;
+  }
+  .sound-controls.hidden{ display:none; }
+  .sound-controls .info{ flex:1; }
+  .sound-controls b{ font-size:.8rem; display:block; }
+  .sound-controls input[type=range]{ width:100%; accent-color:var(--yellow); }
+  .sound-controls select{ background:rgba(255,255,255,0.1); color:var(--white); border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:4px 6px; font-size:.7rem; }
+  .sound-controls .stopbtn{ background:var(--yellow); color:var(--black); border-radius:50%; width:36px;height:36px; font-weight:900; }
+
+  /* ---------- Courses ---------- */
+  .chapter{
+    background:var(--white); border:1px solid var(--line); border-radius:16px; margin-bottom:12px; overflow:hidden; box-shadow: var(--shadow);
+  }
+  .chapter-head{
+    padding:14px 16px; display:flex; align-items:center; gap:12px; width:100%; background:none; text-align:left;
+  }
+  .chapter-num{
+    width:30px;height:30px; border-radius:50%; background:var(--yellow); color:var(--black); font-family:'Fredoka'; font-weight:700;
+    display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0;
+  }
+  .chapter-head b{ font-size:.85rem; flex:1; }
+  .chapter-head .chev{ transition: transform .2s ease; font-size:.8rem; color:#8a8272; }
+  .chapter.open .chev{ transform:rotate(180deg); }
+  .chapter-body{ max-height:0; overflow:hidden; transition: max-height .3s ease; padding:0 16px; }
+  .chapter.open .chapter-body{ max-height:400px; padding:0 16px 16px; }
+  .chapter-body p{ font-size:.82rem; line-height:1.55; color:#4a4436; margin:0 0 8px; }
+
+  /* ---------- bottom nav ---------- */
+  nav.bottom-nav{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px;
+    background:var(--black); display:flex; justify-content:space-around; padding:10px 6px calc(10px + env(safe-area-inset-bottom));
+    z-index:30; border-top:3px solid var(--yellow);
+  }
+  .nav-btn{ background:none; color:rgba(255,253,247,0.55); display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; padding:4px; }
+  .nav-btn .ico{ font-size:1.25rem; }
+  .nav-btn span{ font-size:.6rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; }
+  .nav-btn.active{ color:var(--yellow); }
+
+  /* ---------- modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(26,23,18,0.55); display:flex; align-items:flex-end; justify-content:center; z-index:100;
+  }
+  .modal-overlay.hidden{ display:none; }
+  .modal-sheet{
+    background:var(--white); width:100%; max-width:480px; border-radius:24px 24px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom));
+    max-height:88vh; overflow-y:auto; animation: slideUp .25s ease;
+  }
+  @keyframes slideUp{ from{ transform:translateY(30px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
+  .modal-sheet h2{ margin:0 0 4px; font-size:1.2rem; }
+  .modal-sheet .sub{ font-size:.78rem; color:#8a8272; margin-bottom:16px; }
+  .field{ margin-bottom:14px; }
+  .field label{ font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:var(--charcoal); display:block; margin-bottom:6px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:12px 14px; border-radius:12px; border:2px solid var(--line); font-family:inherit; font-size:.9rem; background:var(--white); color:var(--black);
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--yellow-deep); }
+  .modal-actions{ display:flex; gap:10px; margin-top:6px; }
+  .close-x{ position:absolute; top:16px; right:16px; background:var(--yellow-pale); width:32px;height:32px; border-radius:50%; font-weight:900; }
+  .modal-sheet{ position:relative; }
+
+  .segmented{ display:flex; gap:8px; flex-wrap:wrap; }
+  .seg-opt{
+    padding:9px 14px; border-radius:20px; border:2px solid var(--line); font-size:.78rem; font-weight:700; background:var(--white);
+  }
+  .seg-opt.active{ background:var(--black); color:var(--yellow); border-color:var(--black); }
+
+  ::-webkit-scrollbar{ width:0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ONBOARDING -->
+  <div id="onboarding" class="modal-overlay">
+    <div class="modal-sheet">
+      <h2>🐝 Bem-vindo(a) ao Melina</h2>
+      <p class="sub">Vamos conhecer seu bebê para montar previsões de sono personalizadas.</p>
+      <div class="field">
+        <label>Nome do bebê</label>
+        <input id="ob-name" type="text" placeholder="Ex: Sofia">
+      </div>
+      <div class="field">
+        <label>Data de nascimento</label>
+        <input id="ob-birth" type="date">
+      </div>
+      <div class="field">
+        <label>Ícone</label>
+        <div class="segmented" id="ob-icon-group">
+          <button type="button" class="seg-opt active" data-icon="🐝">🐝</button>
+          <button type="button" class="seg-opt" data-icon="👶">👶</button>
+          <button type="button" class="seg-opt" data-icon="🍯">🍯</button>
+          <button type="button" class="seg-opt" data-icon="🌻">🌻</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="finishOnboarding()">Começar</button>
+    </div>
+  </div>
+
+  <div class="hex-strip"></div>
+  <header class="topbar">
+    <svg class="bee-logo" viewBox="0 0 64 64" fill="none">
+      <ellipse cx="32" cy="36" rx="16" ry="14" fill="#FFC629"/>
+      <path d="M18 30 Q32 22 46 30" stroke="#1A1712" stroke-width="5" fill="none"/>
+      <path d="M18 38 Q32 30 46 38" stroke="#1A1712" stroke-width="5" fill="none"/>
+      <path d="M18 46 Q32 40 46 46" stroke="#1A1712" stroke-width="5" fill="none"/>
+      <circle cx="32" cy="20" r="9" fill="#1A1712"/>
+      <circle cx="28" cy="19" r="1.6" fill="#FFC629"/>
+      <circle cx="36" cy="19" r="1.6" fill="#FFC629"/>
+      <path d="M24 12 L18 4" stroke="#1A1712" stroke-width="3" stroke-linecap="round"/>
+      <path d="M40 12 L46 4" stroke="#1A1712" stroke-width="3" stroke-linecap="round"/>
+      <ellipse cx="14" cy="30" rx="9" ry="6" fill="#FFFDF7" opacity="0.85" transform="rotate(-20 14 30)"/>
+      <ellipse cx="50" cy="30" rx="9" ry="6" fill="#FFFDF7" opacity="0.85" transform="rotate(20 50 30)"/>
+    </svg>
+    <div class="brand"><b>Melina</b><span>sono do bebê</span></div>
+    <div class="topbar-baby">
+      <b id="tb-name">—</b>
+      <span id="tb-age">—</span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- HOME -->
+    <section id="view-home" class="view active">
+      <div class="status-hero">
+        <div class="state-label" id="home-state-label">STATUS ATUAL</div>
+        <div class="state-big" id="home-state-big">Carregando…</div>
+        <div class="state-sub" id="home-state-sub">—</div>
+        <div class="countdown">
+          <div class="num" id="home-countdown-num">--</div>
+          <div class="unit" id="home-countdown-unit">min até a próxima soneca prevista</div>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="home-main-action" onclick="toggleSleepFromHome()">Iniciar soneca</button>
+          <button class="btn btn-ghost" onclick="openEventModal('diaper')">+ Fralda</button>
+        </div>
+      </div>
+
+      <div class="quick-grid">
+        <button class="quick-item" onclick="openEventModal('feed')"><span class="ico">🍼</span><span>Alimentação</span></button>
+        <button class="quick-item" onclick="openEventModal('diaper')"><span class="ico">🧷</span><span>Fralda</span></button>
+        <button class="quick-item" onclick="openEventModal('pump')"><span class="ico">🫙</span><span>Extração</span></button>
+        <button class="quick-item" onclick="openEventModal('med')"><span class="ico">💊</span><span>Remédio</span></button>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow"><span class="hexdot"></span>Resumo de hoje</div>
+        <div class="summary-row">
+          <div class="summary-box"><b id="sum-sleep">0h</b><span>Sono total</span></div>
+          <div class="summary-box"><b id="sum-naps">0</b><span>Sonecas</span></div>
+          <div class="summary-box"><b id="sum-feeds">0</b><span>Mamadas</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow"><span class="hexdot"></span>Últimos registros</div>
+        <div id="home-recent"></div>
+      </div>
+    </section>
+
+    <!-- TRACKER -->
+    <section id="view-tracker" class="view">
+      <h3 style="margin:0 0 14px;">O que aconteceu?</h3>
+      <div class="type-grid">
+        <button class="type-btn" onclick="openEventModal('nap')"><span class="ico">☀️</span><span>Soneca</span></button>
+        <button class="type-btn" onclick="openEventModal('night')"><span class="ico">🌙</span><span>Sono noturno</span></button>
+        <button class="type-btn" onclick="openEventModal('feed')"><span class="ico">🍼</span><span>Alimentação</span></button>
+        <button class="type-btn" onclick="openEventModal('diaper')"><span class="ico">🧷</span><span>Fralda</span></button>
+        <button class="type-btn" onclick="openEventModal('pump')"><span class="ico">🫙</span><span>Extração</span></button>
+        <button class="type-btn" onclick="openEventModal('med')"><span class="ico">💊</span><span>Remédio</span></button>
+        <button class="type-btn" onclick="openEventModal('bath')"><span class="ico">🛁</span><span>Banho</span></button>
+        <button class="type-btn" onclick="openEventModal('note')"><span class="ico">📝</span><span>Nota</span></button>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow"><span class="hexdot"></span>Histórico</div>
+        <div id="tracker-list"></div>
+      </div>
+    </section>
+
+    <!-- TRENDS -->
+    <section id="view-trends" class="view">
+      <h3 style="margin:0 0 14px;">Tendências</h3>
+      <div class="card">
+        <div class="eyebrow"><span class="hexdot"></span>Horas de sono · últimos 7 dias</div>
+        <div class="chart-wrap"><canvas id="chart-sleep"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="eyebrow"><span class="hexdot"></span>Atividades de hoje</div>
+        <div class="chart-wrap"><canvas id="chart-today"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="eyebrow"><span class="hexdot"></span>Despertares noturnos · últimos 7 dias</div>
+        <div class="chart-wrap"><canvas id="chart-wakings"></canvas></div>
+        <p class="legend-note">Cada despertar registrado como novo bloco de sono noturno.</p>
+      </div>
+    </section>
+
+    <!-- SOUNDS -->
+    <section id="view-sounds" class="view">
+      <h3 style="margin:0 0 4px;">Sons para dormir</h3>
+      <p class="legend-note" style="margin-bottom:14px;">Sons gerados ao vivo pelo app — toque para ouvir.</p>
+      <div class="sound-grid" id="sound-grid"></div>
+    </section>
+
+    <!-- COURSES -->
+    <section id="view-courses" class="view">
+      <h3 style="margin:0 0 4px;">Curso Melina de sono</h3>
+      <p class="legend-note" style="margin-bottom:14px;">Conteúdo educativo em capítulos curtos.</p>
+      <div id="chapters"></div>
+    </section>
+
+  </main>
+
+  <div class="sound-controls hidden" id="sound-controls">
+    <div class="info">
+      <b id="sc-name">—</b>
+      <input type="range" id="sc-volume" min="0" max="100" value="60">
+    </div>
+    <select id="sc-timer">
+      <option value="0">Sem limite</option>
+      <option value="15">15 min</option>
+      <option value="30">30 min</option>
+      <option value="60">60 min</option>
+    </select>
+    <button class="stopbtn" onclick="stopSound()">■</button>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="home" onclick="switchView('home')"><span class="ico">🏠</span><span>Início</span></button>
+    <button class="nav-btn" data-view="tracker" onclick="switchView('tracker')"><span class="ico">📋</span><span>Registrar</span></button>
+    <button class="nav-btn" data-view="trends" onclick="switchView('trends')"><span class="ico">📈</span><span>Tendências</span></button>
+    <button class="nav-btn" data-view="sounds" onclick="switchView('sounds')"><span class="ico">🎵</span><span>Sons</span></button>
+    <button class="nav-btn" data-view="courses" onclick="switchView('courses')"><span class="ico">🎓</span><span>Curso</span></button>
+  </nav>
+
+  <!-- EVENT MODAL -->
+  <div id="event-modal" class="modal-overlay hidden">
+    <div class="modal-sheet">
+      <button class="close-x" onclick="closeEventModal()">✕</button>
+      <h2 id="ev-title">Registrar</h2>
+      <p class="sub" id="ev-sub"></p>
+
+      <div class="field" id="ev-field-subtype" style="display:none;">
+        <label>Tipo</label>
+        <div class="segmented" id="ev-subtype-group"></div>
+      </div>
+
+      <div class="field">
+        <label id="ev-start-label">Início</label>
+        <input type="datetime-local" id="ev-start">
+      </div>
+      <div class="field" id="ev-field-end">
+        <label>Fim (deixe em branco se ainda não terminou)</label>
+        <input type="datetime-local" id="ev-end">
+      </div>
+      <div class="field" id="ev-field-note">
+        <label>Observação (opcional)</label>
+        <input type="text" id="ev-note" placeholder="Ex: acordou chorando">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" style="flex:1" onclick="closeEventModal()">Cancelar</button>
+        <button class="btn btn-primary" style="flex:2" onclick="saveEvent()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   MELINA · lógica funcional
+   ============================================================ */
+
+const STORAGE_KEY = 'melinaAppState_v1';
+let state = loadState();
+let editingSubtype = null;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { baby:null, events:[] };
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+/* ---------- Onboarding ---------- */
+document.querySelectorAll('#ob-icon-group .seg-opt').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#ob-icon-group .seg-opt').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+
+function finishOnboarding(){
+  const name = document.getElementById('ob-name').value.trim() || 'Bebê';
+  const birth = document.getElementById('ob-birth').value;
+  const icon = document.querySelector('#ob-icon-group .seg-opt.active').dataset.icon;
+  if(!birth){ alert('Por favor, informe a data de nascimento.'); return; }
+  state.baby = { name, birth, icon };
+  saveState();
+  document.getElementById('onboarding').classList.add('hidden');
+  renderAll();
+}
+
+if(state.baby){ document.getElementById('onboarding').classList.add('hidden'); }
+
+/* ---------- Age / wake-window logic ---------- */
+function ageInMonths(birthISO){
+  const b = new Date(birthISO);
+  const n = new Date();
+  let months = (n.getFullYear()-b.getFullYear())*12 + (n.getMonth()-b.getMonth());
+  if(n.getDate() < b.getDate()) months -= 1;
+  return Math.max(0, months);
+}
+function ageLabel(birthISO){
+  const m = ageInMonths(birthISO);
+  if(m < 1){
+    const days = Math.floor((new Date() - new Date(birthISO))/86400000);
+    return days + ' dia(s)';
+  }
+  if(m < 24) return m + ' meses';
+  return Math.floor(m/12) + ' ano(s)';
+}
+const WAKE_WINDOW_TABLE = [
+  {max:1, min:60}, {max:2, min:75}, {max:3, min:90}, {max:4, min:105},
+  {max:6, min:135}, {max:9, min:165}, {max:12, min:195}, {max:18, min:240},
+  {max:24, min:300}, {max:36, min:360}, {max:999, min:420}
+];
+function baseWakeWindow(months){
+  for(const row of WAKE_WINDOW_TABLE) if(months <= row.max) return row.min;
+  return 420;
+}
+const TOTAL_SLEEP_TABLE = [
+  {max:3, label:'14–17h'}, {max:11, label:'12–15h'}, {max:24, label:'11–14h'}, {max:60, label:'10–13h'}
+];
+function recommendedSleepLabel(months){
+  for(const row of TOTAL_SLEEP_TABLE) if(months <= row.max) return row.label;
+  return '10–13h';
+}
+
+/* ---------- Events helpers ---------- */
+function addEvent(ev){
+  ev.id = Date.now() + Math.random().toString(36).slice(2,6);
+  state.events.push(ev);
+  state.events.sort((a,b)=> new Date(a.start) - new Date(b.start));
+  saveState();
+}
+function deleteEvent(id){
+  state.events = state.events.filter(e=>e.id!==id);
+  saveState();
+  renderAll();
+}
+function sleepEvents(){ return state.events.filter(e=> e.type==='nap' || e.type==='night'); }
+function todayStr(){ return new Date().toDateString(); }
+function isToday(dateStr){ return new Date(dateStr).toDateString() === todayStr(); }
+
+/* current status: are we sleeping right now? */
+function getCurrentSleep(){
+  const sl = sleepEvents();
+  for(let i=sl.length-1;i>=0;i--){ if(!sl[i].end) return sl[i]; }
+  return null;
+}
+function getLastFinishedSleep(){
+  const sl = sleepEvents().filter(e=>e.end).sort((a,b)=> new Date(b.end)-new Date(a.end));
+  return sl[0] || null;
+}
+
+function predictNextSleep(){
+  if(!state.baby) return null;
+  const months = ageInMonths(state.baby.birth);
+  const base = baseWakeWindow(months);
+  // adaptive component from last up-to-5 finished sleeps' gaps
+  const finished = sleepEvents().filter(e=>e.end).sort((a,b)=> new Date(a.start)-new Date(b.start));
+  let gaps = [];
+  for(let i=1;i<finished.length;i++){
+    const prevEnd = new Date(finished[i-1].end);
+    const curStart = new Date(finished[i].start);
+    const gapMin = (curStart - prevEnd)/60000;
+    if(gapMin>0 && gapMin < 600) gaps.push(gapMin);
+  }
+  gaps = gaps.slice(-5);
+  const adaptive = gaps.length ? gaps.reduce((a,b)=>a+b,0)/gaps.length : null;
+  const ww = adaptive ? Math.round(base*0.5 + adaptive*0.5) : base;
+  const lastFinished = getLastFinishedSleep();
+  const awakeSince = lastFinished ? new Date(lastFinished.end) : new Date();
+  const predicted = new Date(awakeSince.getTime() + ww*60000);
+  return { predicted, ww, awakeSince };
+}
+
+/* ---------- View switching ---------- */
+function switchView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===v));
+  if(v==='trends') renderCharts();
+}
+
+/* ---------- Event modal ---------- */
+const EVENT_META = {
+  nap:    { title:'Registrar soneca', icon:'☀️', hasSubtype:false, hasEnd:true },
+  night:  { title:'Registrar sono noturno', icon:'🌙', hasSubtype:false, hasEnd:true },
+  feed:   { title:'Registrar alimentação', icon:'🍼', hasSubtype:true, subtypes:['Peito','Mamadeira','Sólidos'], hasEnd:true },
+  diaper: { title:'Registrar troca de fralda', icon:'🧷', hasSubtype:true, subtypes:['Molhada','Suja','Ambas'], hasEnd:false },
+  pump:   { title:'Registrar extração de leite', icon:'🫙', hasSubtype:false, hasEnd:true },
+  med:    { title:'Registrar remédio', icon:'💊', hasSubtype:false, hasEnd:false },
+  bath:   { title:'Registrar banho', icon:'🛁', hasSubtype:false, hasEnd:false },
+  note:   { title:'Nova nota', icon:'📝', hasSubtype:false, hasEnd:false }
+};
+
+function openEventModal(type){
+  editingSubtype = null;
+  const meta = EVENT_META[type];
+  document.getElementById('event-modal').dataset.type = type;
+  document.getElementById('ev-title').textContent = meta.icon + '  ' + meta.title;
+  document.getElementById('ev-sub').textContent = state.baby ? state.baby.name : '';
+
+  const now = new Date();
+  now.setSeconds(0,0);
+  document.getElementById('ev-start').value = toLocalInput(now);
+  document.getElementById('ev-end').value = '';
+
+  document.getElementById('ev-field-end').style.display = meta.hasEnd ? 'block' : 'none';
+  document.getElementById('ev-start-label').textContent = meta.hasEnd ? 'Início' : 'Horário';
+
+  const stWrap = document.getElementById('ev-field-subtype');
+  const stGroup = document.getElementById('ev-subtype-group');
+  stGroup.innerHTML = '';
+  if(meta.hasSubtype){
+    stWrap.style.display = 'block';
+    meta.subtypes.forEach((s,i)=>{
+      const b = document.createElement('button');
+      b.type='button'; b.className='seg-opt'+(i===0?' active':''); b.textContent=s;
+      b.onclick=()=>{ stGroup.querySelectorAll('.seg-opt').forEach(x=>x.classList.remove('active')); b.classList.add('active'); editingSubtype=s; };
+      stGroup.appendChild(b);
+    });
+    editingSubtype = meta.subtypes[0];
+  } else {
+    stWrap.style.display = 'none';
+  }
+  document.getElementById('ev-note').value = '';
+  document.getElementById('event-modal').classList.remove('hidden');
+}
+function closeEventModal(){ document.getElementById('event-modal').classList.add('hidden'); }
+function toLocalInput(d){
+  const pad = n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+function saveEvent(){
+  const type = document.getElementById('event-modal').dataset.type;
+  const meta = EVENT_META[type];
+  const startVal = document.getElementById('ev-start').value;
+  if(!startVal){ alert('Informe o horário.'); return; }
+  const endVal = document.getElementById('ev-end').value;
+  const note = document.getElementById('ev-note').value.trim();
+  addEvent({
+    type,
+    subtype: editingSubtype,
+    start: new Date(startVal).toISOString(),
+    end: endVal ? new Date(endVal).toISOString() : null,
+    note
+  });
+  closeEventModal();
+  renderAll();
+}
+
+/* home quick "start/end nap" toggle */
+function toggleSleepFromHome(){
+  const current = getCurrentSleep();
+  if(current){
+    current.end = new Date().toISOString();
+    saveState();
+    renderAll();
+  } else {
+    openEventModal('nap');
+  }
+}
+
+/* ---------- Rendering ---------- */
+const TYPE_ICONS = { nap:'☀️', night:'🌙', feed:'🍼', diaper:'🧷', pump:'🫙', med:'💊', bath:'🛁', note:'📝' };
+const TYPE_LABELS = { nap:'Soneca', night:'Sono noturno', feed:'Alimentação', diaper:'Fralda', pump:'Extração', med:'Remédio', bath:'Banho', note:'Nota' };
+
+function fmtTime(iso){ return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function fmtDur(ms){
+  const min = Math.round(ms/60000);
+  if(min < 60) return min+'min';
+  const h = Math.floor(min/60), m = min%60;
+  return h+'h'+(m? ' '+m+'min':'');
+}
+
+function eventDescription(e){
+  const label = TYPE_LABELS[e.type] + (e.subtype? ' · '+e.subtype : '');
+  let time = fmtTime(e.start);
+  if(e.end) time += ' – ' + fmtTime(e.end) + '  (' + fmtDur(new Date(e.end)-new Date(e.start)) + ')';
+  else if(e.type==='nap' || e.type==='night') time += ' – em andamento';
+  if(e.note) time += ' · "' + e.note + '"';
+  return { label, time };
+}
+
+function renderAll(){
+  if(!state.baby) return;
+  document.getElementById('tb-name').textContent = state.baby.icon + ' ' + state.baby.name;
+  document.getElementById('tb-age').textContent = ageLabel(state.baby.birth);
+  renderHome();
+  renderTracker();
+  if(document.getElementById('view-trends').classList.contains('active')) renderCharts();
+}
+
+function renderHome(){
+  const current = getCurrentSleep();
+  const pred = predictNextSleep();
+  const stateLabel = document.getElementById('home-state-label');
+  const big = document.getElementById('home-state-big');
+  const sub = document.getElementById('home-state-sub');
+  const num = document.getElementById('home-countdown-num');
+  const unit = document.getElementById('home-countdown-unit');
+  const mainBtn = document.getElementById('home-main-action');
+
+  if(current){
+    stateLabel.textContent = current.type==='night' ? 'DORMINDO (NOITE)' : 'COCHILANDO';
+    big.textContent = '😴 Dormindo desde ' + fmtTime(current.start);
+    sub.textContent = 'Toque em "Acordou" quando ela(e) despertar.';
+    num.textContent = fmtDur(new Date()-new Date(current.start));
+    unit.textContent = 'tempo de sono até agora';
+    mainBtn.textContent = 'Acordou 🌤️';
+  } else {
+    stateLabel.textContent = 'STATUS ATUAL';
+    big.textContent = '🐝 Acordado(a)';
+    const awakeSince = pred ? pred.awakeSince : null;
+    sub.textContent = awakeSince ? 'Acordado(a) desde ' + fmtTime(awakeSince.toISOString()) : 'Comece registrando a primeira soneca.';
+    if(pred){
+      const diffMin = Math.round((pred.predicted - new Date())/60000);
+      if(diffMin <= 0){ num.textContent='Agora'; unit.textContent='janela de sono ideal já começou'; }
+      else { num.textContent = diffMin; unit.textContent = 'min até a próxima soneca prevista (~'+fmtTime(pred.predicted.toISOString())+')'; }
+    } else {
+      num.textContent='--'; unit.textContent='registre um sono para começar as previsões';
+    }
+    mainBtn.textContent = 'Iniciar soneca';
+  }
+
+  // today's summary
+  const todays = sleepEvents().filter(e=> isToday(e.start));
+  let totalMs = 0, naps = 0;
+  todays.forEach(e=>{
+    const end = e.end ? new Date(e.end) : new Date();
+    totalMs += (end - new Date(e.start));
+    if(e.type==='nap') naps++;
+  });
+  document.getElementById('sum-sleep').textContent = fmtDur(totalMs);
+  document.getElementById('sum-naps').textContent = naps;
+  document.getElementById('sum-feeds').textContent = state.events.filter(e=>e.type==='feed' && isToday(e.start)).length;
+
+  // recent list (last 4)
+  const recentWrap = document.getElementById('home-recent');
+  const recent = [...state.events].sort((a,b)=> new Date(b.start)-new Date(a.start)).slice(0,4);
+  if(!recent.length){
+    recentWrap.innerHTML = '<div class="empty-state"><div class="ico">🍯</div><p>Nenhum registro ainda. Toque em um dos ícones acima para começar.</p></div>';
+  } else {
+    recentWrap.innerHTML = recent.map(e=>{
+      const d = eventDescription(e);
+      return `<div class="event-item"><div class="event-ico">${TYPE_ICONS[e.type]}</div><div class="event-info"><b>${d.label}</b><span>${d.time}</span></div></div>`;
+    }).join('');
+  }
+}
+
+function renderTracker(){
+  const wrap = document.getElementById('tracker-list');
+  const all = [...state.events].sort((a,b)=> new Date(b.start)-new Date(a.start));
+  if(!all.length){
+    wrap.innerHTML = '<div class="empty-state"><div class="ico">📋</div><p>Nenhum evento registrado ainda.</p></div>';
+    return;
+  }
+  wrap.innerHTML = all.map(e=>{
+    const d = eventDescription(e);
+    return `<div class="event-item"><div class="event-ico">${TYPE_ICONS[e.type]}</div><div class="event-info"><b>${d.label}</b><span>${d.time}</span></div><button class="event-del" onclick="deleteEvent('${e.id}')">Excluir</button></div>`;
+  }).join('');
+}
+
+/* ---------- Charts ---------- */
+let chartSleep, chartToday, chartWakings;
+function last7Dates(){
+  const arr = [];
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); arr.push(d); }
+  return arr;
+}
+function renderCharts(){
+  if(typeof Chart === 'undefined') return;
+  const days = last7Dates();
+  const dayLabels = days.map(d=> d.toLocaleDateString('pt-BR',{weekday:'short'}));
+
+  // hours of sleep per day
+  const sleepHours = days.map(d=>{
+    const dayStr = d.toDateString();
+    let ms = 0;
+    sleepEvents().forEach(e=>{
+      if(new Date(e.start).toDateString()===dayStr){
+        const end = e.end ? new Date(e.end) : new Date();
+        ms += (end-new Date(e.start));
+      }
+    });
+    return +(ms/3600000).toFixed(1);
+  });
+
+  const ctx1 = document.getElementById('chart-sleep');
+  if(chartSleep) chartSleep.destroy();
+  chartSleep = new Chart(ctx1, {
+    type:'bar',
+    data:{ labels:dayLabels, datasets:[{ label:'Horas de sono', data:sleepHours, backgroundColor:'#FFC629', borderRadius:6 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#eee'}}, x:{grid:{display:false}} } }
+  });
+
+  // today's activity distribution
+  const todays = state.events.filter(e=> isToday(e.start));
+  const counts = {};
+  todays.forEach(e=>{ counts[TYPE_LABELS[e.type]] = (counts[TYPE_LABELS[e.type]]||0)+1; });
+  const ctx2 = document.getElementById('chart-today');
+  if(chartToday) chartToday.destroy();
+  const labels2 = Object.keys(counts);
+  chartToday = new Chart(ctx2, {
+    type:'doughnut',
+    data:{ labels: labels2.length?labels2:['Sem dados'], datasets:[{ data: labels2.length?Object.values(counts):[1],
+      backgroundColor:['#1A1712','#FFC629','#E8A400','#7a7364','#c9c2ad','#4a4436','#FFF4D6'] }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10}}}} }
+  });
+
+  // night wakings per day (count of night-type sleep segments)
+  const wakings = days.map(d=>{
+    const dayStr = d.toDateString();
+    return state.events.filter(e=> e.type==='night' && new Date(e.start).toDateString()===dayStr).length;
+  });
+  const ctx3 = document.getElementById('chart-wakings');
+  if(chartWakings) chartWakings.destroy();
+  chartWakings = new Chart(ctx3, {
+    type:'line',
+    data:{ labels:dayLabels, datasets:[{ label:'Despertares', data:wakings, borderColor:'#1A1712', backgroundColor:'#FFC629', tension:.3, fill:true, pointRadius:4 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, ticks:{stepSize:1}, grid:{color:'#eee'}}, x:{grid:{display:false}} } }
+  });
+}
+
+/* ============================================================
+   SONS — gerados via Web Audio API (sem arquivos externos)
+   ============================================================ */
+const SOUNDS = [
+  { id:'white',   name:'Ruído branco',      icon:'📻', desc:'Estático clássico' },
+  { id:'pink',    name:'Ruído rosa',        icon:'🌸', desc:'Grave e envolvente' },
+  { id:'heart',   name:'Batimento cardíaco',icon:'💓', desc:'Ritmo calmo e constante' },
+  { id:'womb',    name:'No útero',          icon:'🫀', desc:'Som abafado e familiar' },
+  { id:'rain',    name:'Chuva no carro',    icon:'🌧️', desc:'Chuva + limpador de para-brisa' },
+  { id:'birds',   name:'Passarinhos',       icon:'🐦', desc:'Cantos suaves' },
+  { id:'lawn',    name:'Cortador de grama', icon:'🌿', desc:'Zumbido constante' },
+  { id:'twinkle', name:'Estrelinha',        icon:'⭐', desc:'Melodia de ninar' },
+];
+
+function renderSounds(){
+  const grid = document.getElementById('sound-grid');
+  grid.innerHTML = SOUNDS.map(s=>`
+    <div class="sound-card" id="sc-card-${s.id}">
+      <span class="ico">${s.icon}</span>
+      <b>${s.name}</b>
+      <span class="desc">${s.desc}</span>
+      <button class="sound-toggle" onclick="toggleSound('${s.id}')">▶ Tocar</button>
+    </div>
+  `).join('');
+}
+
+let audioCtx = null;
+let activeNodes = [];
+let activeSoundId = null;
+let sleepTimerHandle = null;
+
+function ensureAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function stopAllNodes(){
+  activeNodes.forEach(n=>{ try{ n.stop && n.stop(); }catch(e){} try{ n.disconnect && n.disconnect(); }catch(e){} });
+  activeNodes = [];
+  if(sleepTimerHandle){ clearTimeout(sleepTimerHandle); sleepTimerHandle=null; }
+}
+
+function makeNoiseBuffer(ctx, seconds=2, color='white'){
+  const bufferSize = ctx.sampleRate*seconds;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  if(color==='white'){
+    for(let i=0;i<bufferSize;i++) data[i] = Math.random()*2-1;
+  } else { // pink-ish via simple filtering
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for(let i=0;i<bufferSize;i++){
+      const white = Math.random()*2-1;
+      b0 = 0.99886*b0 + white*0.0555179;
+      b1 = 0.99332*b1 + white*0.0750759;
+      b2 = 0.96900*b2 + white*0.1538520;
+      b3 = 0.86650*b3 + white*0.3104856;
+      b4 = 0.55000*b4 + white*0.5329522;
+      b5 = -0.7616*b5 - white*0.0168980;
+      const pink = b0+b1+b2+b3+b4+b5+b6+white*0.5362;
+      b6 = white*0.115926;
+      data[i] = pink*0.11;
+    }
+  }
+  return buffer;
+}
+
+function playNoise(color, lowpass){
+  const ctx = ensureAudio();
+  const buffer = makeNoiseBuffer(ctx, 3, color);
+  const src = ctx.createBufferSource();
+  src.buffer = buffer; src.loop = true;
+  const gain = ctx.createGain(); gain.gain.value = getVolume();
+  let node = src;
+  if(lowpass){
+    const filt = ctx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=lowpass;
+    src.connect(filt); filt.connect(gain); activeNodes.push(filt);
+  } else { src.connect(gain); }
+  gain.connect(ctx.destination);
+  src.start();
+  activeNodes.push(src, gain);
+  activeNodes._gain = gain;
+  return gain;
+}
+
+function playHeartbeat(){
+  const ctx = ensureAudio();
+  const master = ctx.createGain(); master.gain.value = getVolume();
+  master.connect(ctx.destination);
+  activeNodes.push(master);
+  let running = true;
+  function thump(delay, freq, dur){
+    const osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=freq;
+    const g = ctx.createGain(); g.gain.value=0;
+    osc.connect(g); g.connect(master);
+    const t = ctx.currentTime+delay;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(0.9,t+0.04);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.05);
+    activeNodes.push(osc,g);
+  }
+  function loop(){
+    if(!running) return;
+    thump(0,55,0.25); thump(0.28,45,0.3);
+    activeNodes._loopTimer = setTimeout(loop, 1000);
+  }
+  loop();
+  activeNodes._stopHeart = ()=>{ running=false; if(activeNodes._loopTimer) clearTimeout(activeNodes._loopTimer); };
+  return master;
+}
+
+function playLawnmower(){
+  const ctx = ensureAudio();
+  const osc = ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.value=90;
+  const lfo = ctx.createOscillator(); lfo.frequency.value=6;
+  const lfoGain = ctx.createGain(); lfoGain.gain.value=8;
+  lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+  const filt = ctx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=500;
+  const g = ctx.createGain(); g.gain.value=getVolume()*0.5;
+  osc.connect(filt); filt.connect(g); g.connect(ctx.destination);
+  osc.start(); lfo.start();
+  activeNodes.push(osc,lfo,lfoGain,filt,g);
+  activeNodes._gain = g;
+  return g;
+}
+
+function playBirds(){
+  const ctx = ensureAudio();
+  const master = ctx.createGain(); master.gain.value = getVolume();
+  master.connect(ctx.destination);
+  activeNodes.push(master);
+  let running = true;
+  function chirp(){
+    if(!running) return;
+    const osc = ctx.createOscillator(); osc.type='sine';
+    const g = ctx.createGain(); g.gain.value=0;
+    osc.connect(g); g.connect(master);
+    const base = 1800+Math.random()*1200;
+    const t = ctx.currentTime;
+    osc.frequency.setValueAtTime(base,t);
+    osc.frequency.exponentialRampToValueAtTime(base*0.6, t+0.12);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.25,t+0.02); g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+    osc.start(t); osc.stop(t+0.2);
+    activeNodes.push(osc,g);
+    activeNodes._loopTimer = setTimeout(chirp, 400+Math.random()*1400);
+  }
+  chirp();
+  activeNodes._stopHeart = ()=>{ running=false; if(activeNodes._loopTimer) clearTimeout(activeNodes._loopTimer); };
+  return master;
+}
+
+/* "Twinkle Twinkle Little Star" — melodia de domínio público, sequenciada como caixinha de música */
+function playTwinkle(){
+  const ctx = ensureAudio();
+  const master = ctx.createGain(); master.gain.value = getVolume();
+  master.connect(ctx.destination);
+  activeNodes.push(master);
+  const notes = [261.6,261.6,392.0,392.0,440.0,440.0,392.0, 349.2,349.2,329.6,329.6,293.7,293.7,261.6];
+  const noteLen = 0.42;
+  let running = true;
+  function playSeq(){
+    if(!running) return;
+    notes.forEach((freq,i)=>{
+      const osc = ctx.createOscillator(); osc.type='triangle'; osc.frequency.value=freq;
+      const g = ctx.createGain();
+      const t = ctx.currentTime + i*noteLen;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.5,t+0.03); g.gain.exponentialRampToValueAtTime(0.001,t+noteLen*0.95);
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t+noteLen);
+      activeNodes.push(osc,g);
+    });
+    activeNodes._loopTimer = setTimeout(playSeq, notes.length*noteLen*1000 + 800);
+  }
+  playSeq();
+  activeNodes._stopHeart = ()=>{ running=false; if(activeNodes._loopTimer) clearTimeout(activeNodes._loopTimer); };
+  return master;
+}
+
+function getVolume(){ return (document.getElementById('sc-volume').value||60)/100; }
+
+function toggleSound(id){
+  if(activeSoundId === id){ stopSound(); return; }
+  stopSound();
+  activeSoundId = id;
+  let gainNode = null;
+  switch(id){
+    case 'white': gainNode = playNoise('white'); break;
+    case 'pink': gainNode = playNoise('pink'); break;
+    case 'heart': gainNode = playHeartbeat(); break;
+    case 'womb': gainNode = playNoise('pink', 500); break;
+    case 'rain': gainNode = playNoise('white', 1800); break;
+    case 'birds': gainNode = playBirds(); break;
+    case 'lawn': gainNode = playLawnmower(); break;
+    case 'twinkle': gainNode = playTwinkle(); break;
+  }
+  activeNodes._mainGain = gainNode;
+  document.querySelectorAll('.sound-card').forEach(c=>c.classList.remove('playing'));
+  const card = document.getElementById('sc-card-'+id);
+  card.classList.add('playing');
+  card.querySelector('.sound-toggle').textContent = '■ Parar';
+  document.getElementById('sound-controls').classList.remove('hidden');
+  document.getElementById('sc-name').textContent = SOUNDS.find(s=>s.id===id).name;
+
+  const timerSel = document.getElementById('sc-timer').value;
+  if(timerSel && +timerSel>0){
+    sleepTimerHandle = setTimeout(stopSound, +timerSel*60000);
+  }
+}
+function stopSound(){
+  if(activeNodes._stopHeart) activeNodes._stopHeart();
+  stopAllNodes();
+  document.querySelectorAll('.sound-card').forEach(c=>{ c.classList.remove('playing'); const b=c.querySelector('.sound-toggle'); if(b) b.textContent='▶ Tocar'; });
+  document.getElementById('sound-controls').classList.add('hidden');
+  activeSoundId = null;
+}
+document.getElementById('sc-volume').addEventListener('input', ()=>{
+  if(activeNodes._gain) activeNodes._gain.gain.value = getVolume();
+  if(activeNodes._mainGain) activeNodes._mainGain.gain.value = getVolume();
+});
+
+/* ============================================================
+   CURSO — conteúdo educativo (texto original)
+   ============================================================ */
+const CHAPTERS = [
+  { title:'O que são os despertares noturnos?',
+    body:`Despertar entre um ciclo de sono e outro é normal para bebês de qualquer idade — inclusive adultos fazem isso várias vezes por noite sem perceber. A diferença é que o bebê ainda está aprendendo a "religar" sozinho depois desses microdespertares. Entender isso ajuda a encarar as noites com menos ansiedade: o objetivo não é eliminar os despertares, e sim ajudar seu bebê a voltar a dormir com cada vez mais autonomia.` },
+  { title:'Por que meu bebê acorda tanto à noite?',
+    body:`Fome, desconforto (fralda, temperatura), marcos de desenvolvimento (virar, engatinhar, sentar), dentição e mudanças na rotina diurna são as causas mais comuns. Também vale observar a "janela de sono": um bebê que vai para o berço cansado demais ou de menos tende a ter noites mais agitadas. Registrar os horários no Melina ajuda a identificar padrões ao longo dos dias.` },
+  { title:'Quando ele vai dormir a noite toda?',
+    body:`Não existe uma idade mágica — cada bebê tem seu próprio ritmo de maturação do sono. Em geral, entre 4 e 6 meses muitos bebês já conseguem períodos mais longos sem mamar à noite, mas isso varia bastante conforme peso, saúde e temperamento. Em vez de comparar com outros bebês, use as próprias tendências do Melina para acompanhar a evolução do seu filho ao longo das semanas.` },
+  { title:'Como reduzir os despertares noturnos',
+    body:`Algumas estratégias suaves: manter uma rotina de sono consistente, garantir que o ambiente esteja escuro e com temperatura agradável, evitar janelas de sono muito longas durante o dia, e dar ao bebê alguns instantes antes de intervir em cada despertar (ele pode voltar a dormir sozinho). Pequenos ajustes graduais tendem a funcionar melhor do que mudanças bruscas — e o mais importante é o que funciona para a sua família.` }
+];
+function renderChapters(){
+  const wrap = document.getElementById('chapters');
+  wrap.innerHTML = CHAPTERS.map((c,i)=>`
+    <div class="chapter" id="chap-${i}">
+      <button class="chapter-head" onclick="toggleChapter(${i})">
+        <div class="chapter-num">${i+1}</div>
+        <b>${c.title}</b>
+        <span class="chev">▾</span>
+      </button>
+      <div class="chapter-body"><p>${c.body}</p></div>
+    </div>
+  `).join('');
+}
+function toggleChapter(i){ document.getElementById('chap-'+i).classList.toggle('open'); }
+
+/* ---------- init ---------- */
+renderSounds();
+renderChapters();
+if(state.baby) renderAll();
+setInterval(()=>{ if(state.baby) renderHome(); }, 30000);
+</script>
+</body>
+</html>
