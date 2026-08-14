@@ -33,7 +33,7 @@
     --radius: 18px;
     --shadow: 0 10px 30px rgba(26,23,18,0.10);
   }
-  *{box-sizing:border-box;}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;height:100%;}
   body{
     font-family:'Nunito Sans', sans-serif;
@@ -41,6 +41,7 @@
     color: var(--black);
     -webkit-font-smoothing:antialiased;
     overscroll-behavior:none;
+    touch-action:manipulation;
   }
   h1,h2,h3,h4,.display{ font-family:'Fredoka', sans-serif; font-weight:600; letter-spacing:.2px; }
 
@@ -49,6 +50,7 @@
     max-width:480px;
     margin:0 auto;
     min-height:100vh;
+    min-height:100dvh;
     display:flex;
     flex-direction:column;
     background:var(--white);
@@ -86,7 +88,7 @@
   .topbar-baby b{ font-size:.85rem; display:block; }
   .topbar-baby span{ font-size:.68rem; color:rgba(255,253,247,0.6); }
 
-  main{ flex:1; padding: 18px 16px 96px; }
+  main{ flex:1; padding: 18px 16px calc(96px + env(safe-area-inset-bottom)); }
   .view{ display:none; animation: fadeIn .25s ease; }
   .view.active{ display:block; }
   @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
@@ -133,7 +135,7 @@
   .status-hero .countdown .unit{ font-size:.8rem; color:rgba(255,253,247,0.7); }
   .hero-actions{ display:flex; gap:10px; margin-top:18px; }
 
-  button{ font-family:inherit; cursor:pointer; border:none; }
+  button{ font-family:inherit; cursor:pointer; border:none; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
   .btn{
     padding:12px 16px; border-radius:14px; font-weight:800; font-size:.88rem;
     display:inline-flex; align-items:center; justify-content:center; gap:6px;
@@ -206,7 +208,7 @@
   .sound-card.playing .sound-toggle{ background:var(--yellow); }
 
   .sound-controls{
-    position:fixed; bottom:74px; left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:448px;
+    position:fixed; bottom:calc(74px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:448px;
     background:var(--black); color:var(--white); border-radius:16px; padding:12px 16px;
     display:flex; align-items:center; gap:12px; box-shadow:0 10px 30px rgba(0,0,0,.3); z-index:40;
   }
@@ -261,7 +263,7 @@
   .field{ margin-bottom:14px; }
   .field label{ font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:var(--charcoal); display:block; margin-bottom:6px; }
   .field input, .field select, .field textarea{
-    width:100%; padding:12px 14px; border-radius:12px; border:2px solid var(--line); font-family:inherit; font-size:.9rem; background:var(--white); color:var(--black);
+    width:100%; padding:12px 14px; border-radius:12px; border:2px solid var(--line); font-family:inherit; font-size:16px; background:var(--white); color:var(--black); -webkit-appearance:none; appearance:none;
   }
   .field input:focus, .field select:focus{ outline:none; border-color:var(--yellow-deep); }
   .modal-actions{ display:flex; gap:10px; margin-top:6px; }
@@ -494,7 +496,10 @@ function loadState(){
   }catch(e){}
   return { baby:null, events:[] };
 }
-function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.warn('Não foi possível salvar os dados localmente (modo privado ou armazenamento cheio).'); }
+}
 
 /* ---------- Onboarding ---------- */
 document.querySelectorAll('#ob-icon-group .seg-opt').forEach(b=>{
@@ -880,7 +885,11 @@ let activeNodes = [];
 let activeSoundId = null;
 let sleepTimerHandle = null;
 
-function ensureAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function ensureAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
 function stopAllNodes(){
   activeNodes.forEach(n=>{ try{ n.stop && n.stop(); }catch(e){} try{ n.disconnect && n.disconnect(); }catch(e){} });
   activeNodes = [];
