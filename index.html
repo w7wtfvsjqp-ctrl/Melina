@@ -224,6 +224,20 @@
   .hero-quick-row button:active{ background:var(--yellow); }
   .hero-quick-row button.on{ background:var(--yellow); }
 
+  .timer-cat-row{
+    display:flex; gap:8px; overflow-x:auto; padding:12px 2px 2px; margin:0 -4px;
+    -ms-overflow-style:none; scrollbar-width:none;
+  }
+  .timer-cat-row::-webkit-scrollbar{ display:none; }
+  .cat-chip{
+    flex-shrink:0; display:flex; align-items:center; gap:5px; padding:7px 12px; border-radius:20px;
+    background:rgba(255,253,247,0.08); border:1px solid rgba(255,253,247,0.18); color:rgba(255,253,247,0.75);
+    font-size:.72rem; font-weight:700;
+  }
+  .cat-chip .cc-ico{ font-size:.9rem; }
+  .cat-chip.active{ background:var(--yellow); border-color:var(--yellow); color:var(--black); }
+  .cat-chip:disabled{ opacity:.4; }
+
   .mini-bar{
     display:flex; align-items:center; gap:10px; background:rgba(255,253,247,0.08); border:1px solid rgba(255,253,247,0.15);
     border-radius:14px; padding:10px 12px; margin-top:16px;
@@ -513,6 +527,9 @@
           <div class="state-label" id="home-state-label">STATUS ATUAL</div>
           <button class="alarm-toggle" id="alarm-toggle" onclick="toggleAlarm()" title="Ativar alarme de soneca">🔕</button>
         </div>
+
+        <div class="timer-cat-row" id="timer-cat-row"></div>
+
         <div class="ring-wrap">
           <svg class="ring-svg" viewBox="0 0 210 210">
             <circle class="ring-bg" cx="105" cy="105" r="86"></circle>
@@ -525,18 +542,11 @@
             <div class="unit" id="home-countdown-unit">min até a próxima soneca prevista</div>
           </div>
         </div>
-        <div class="ring-bounds">
+        <div class="ring-bounds" id="ring-bounds">
           <div class="rb-item"><span class="ico">🌅</span><span id="ring-wake-time">—</span></div>
           <div class="rb-item"><span class="ico">🌙</span><span id="ring-bed-time">—</span></div>
         </div>
         <div class="state-sub" id="home-state-sub">—</div>
-
-        <div class="hero-quick-row">
-          <button onclick="openEventModal('feed')" title="Alimentação">🍼</button>
-          <button onclick="openEventModal('diaper')" title="Fralda">🧷</button>
-          <button onclick="openEventModal('pump')" title="Extração">🫙</button>
-          <button onclick="openEventModal('med')" title="Remédio">💊</button>
-        </div>
 
         <div class="mini-bar">
           <span class="mini-ico" id="mini-ico">☀️</span>
@@ -544,7 +554,7 @@
             <b id="mini-label">Carregando…</b>
             <div class="mini-track"><div class="mini-fill" id="mini-fill"></div></div>
           </div>
-          <button class="mini-play" id="mini-play" onclick="toggleSleepFromHome()">▶</button>
+          <button class="mini-play" id="mini-play" onclick="toggleTimerFromHome()">▶</button>
         </div>
       </div>
 
@@ -696,6 +706,8 @@ let state = loadState();
 if(!state.courseRead) state.courseRead = {};
 if(state.alarmEnabled === undefined) state.alarmEnabled = false;
 if(!state.theme) state.theme = 'light'; // 'light' (padrão) ou 'dark'
+if(!state.timerCategory) state.timerCategory = 'nap';
+if(state.activeTimer === undefined) state.activeTimer = null;
 let editingSubtype = null;
 
 function loadState(){
@@ -728,6 +740,7 @@ function toggleTheme(){
   if(document.getElementById('view-trends').classList.contains('active')) renderCharts();
 }
 applyTheme();
+registerServiceWorker(); // ativa cache offline e habilita notificações via Service Worker assim que possível
 
 /* ---------- Onboarding ---------- */
 document.querySelectorAll('#ob-icon-group .seg-opt').forEach(b=>{
@@ -800,10 +813,17 @@ function sleepEvents(){ return state.events.filter(e=> e.type==='nap' || e.type=
 function todayStr(){ return new Date().toDateString(); }
 function isToday(dateStr){ return new Date(dateStr).toDateString() === todayStr(); }
 
-/* current status: are we sleeping right now? */
+/* current status: are we sleeping right now? (mecanismo antigo, mantido por compatibilidade) */
 function getCurrentSleep(){
   const sl = sleepEvents();
   for(let i=sl.length-1;i>=0;i--){ if(!sl[i].end) return sl[i]; }
+  return null;
+}
+/* cronômetro genérico: funciona para qualquer categoria (soneca, mamada, fralda, remédio...) */
+function getActiveTimer(){
+  if(state.activeTimer) return state.activeTimer;
+  const legacy = getCurrentSleep(); // sessão de sono iniciada antes desta atualização
+  if(legacy) return { type: legacy.type, start: legacy.start, _legacyEvent: legacy };
   return null;
 }
 function getLastFinishedSleep(){
@@ -909,21 +929,47 @@ function saveEvent(){
   renderAll();
 }
 
-/* home quick "start/end nap" toggle */
-function toggleSleepFromHome(){
-  const current = getCurrentSleep();
-  if(current){
-    current.end = new Date().toISOString();
+/* home: iniciar/parar o cronômetro da categoria selecionada (qualquer tipo) */
+function toggleTimerFromHome(){
+  const active = getActiveTimer();
+  if(active){
+    if(active._legacyEvent){
+      active._legacyEvent.end = new Date().toISOString();
+    } else {
+      addEvent({ type: active.type, subtype: null, start: active.start, end: new Date().toISOString(), note: '' });
+    }
+    state.activeTimer = null;
     saveState();
     renderAll();
   } else {
-    openEventModal('nap');
+    const t = state.timerCategory || 'nap';
+    state.activeTimer = { type: t, start: new Date().toISOString() };
+    saveState();
+    renderAll();
   }
 }
 
 /* ---------- Rendering ---------- */
 const TYPE_ICONS = { nap:'☀️', night:'🌙', feed:'🍼', diaper:'🧷', pump:'🫙', med:'💊', bath:'🛁', note:'📝' };
 const TYPE_LABELS = { nap:'Soneca', night:'Sono noturno', feed:'Alimentação', diaper:'Fralda', pump:'Extração', med:'Remédio', bath:'Banho', note:'Nota' };
+const TIMER_TYPES = ['nap','night','feed','diaper','pump','med','bath','note'];
+
+function renderTimerCatRow(){
+  const wrap = document.getElementById('timer-cat-row');
+  const active = getActiveTimer();
+  const sel = active ? active.type : (state.timerCategory || 'nap');
+  wrap.innerHTML = TIMER_TYPES.map(t=>`
+    <button class="cat-chip${t===sel?' active':''}" ${active?'disabled':''} onclick="selectTimerCategory('${t}')">
+      <span class="cc-ico">${TYPE_ICONS[t]}</span><span class="cc-label">${TYPE_LABELS[t]}</span>
+    </button>
+  `).join('');
+}
+function selectTimerCategory(t){
+  if(getActiveTimer()) return; // não é possível trocar de categoria com o cronômetro rodando
+  state.timerCategory = t;
+  saveState();
+  renderHome();
+}
 
 function fmtTime(iso){ return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
 function fmtDur(ms){
@@ -1016,11 +1062,21 @@ function renderRingMarkers(schedule){
   }).join('');
 }
 
-/* ---------- Alarme (som + notificação do navegador) ---------- */
+/* ---------- Alarme (som + notificação via Service Worker/navegador) ---------- */
 let alarmTimer = null;
 let lastAlarmFiredFor = null;
+let swRegistration = null;
+
+function registerServiceWorker(){
+  if(!('serviceWorker' in navigator)) return Promise.resolve(null);
+  return navigator.serviceWorker.register('sw.js')
+    .then(reg=>{ swRegistration = reg; return reg; })
+    .catch(()=> null);
+}
+
 function toggleAlarm(){
   if(!state.alarmEnabled){
+    registerServiceWorker();
     if('Notification' in window && Notification.permission === 'default'){
       Notification.requestPermission().then(()=>{
         state.alarmEnabled = true; saveState(); updateAlarmBtn(); renderHome();
@@ -1051,19 +1107,29 @@ function scheduleAlarm(pred){
     if(lastAlarmFiredFor !== key) fireAlarm(pred, key);
     return;
   }
+  // setTimeout longo pode ser atrasado pelo navegador em 2º plano; o setInterval de
+  // 30s no final do arquivo funciona como checagem de reforço para não perder o horário.
   alarmTimer = setTimeout(()=> fireAlarm(pred, key), msUntil);
 }
-function fireAlarm(pred, key){
+async function fireAlarm(pred, key){
   lastAlarmFiredFor = key;
   playChime();
   document.getElementById('alarm-banner').classList.remove('hidden');
+
+  const title = '🐝 Hora da soneca!';
+  const body = (state.baby ? state.baby.name : 'Seu bebê') + ' está no horário previsto para dormir.';
+  const options = { body, tag:'melina-nap-alarm', icon:'icon-192.png', badge:'icon-192.png', renotify:true, requireInteraction:false };
+
+  try{
+    if(!swRegistration) swRegistration = await registerServiceWorker();
+    if(swRegistration && swRegistration.showNotification){
+      await swRegistration.showNotification(title, options);
+      return;
+    }
+  }catch(e){}
+
   if('Notification' in window && Notification.permission === 'granted'){
-    try{
-      new Notification('🐝 Hora da soneca!', {
-        body: (state.baby ? state.baby.name : 'Seu bebê') + ' está no horário previsto para dormir.',
-        tag: 'melina-nap-alarm'
-      });
-    }catch(e){}
+    try{ new Notification(title, options); }catch(e){}
   }
 }
 function dismissAlarmBanner(){ document.getElementById('alarm-banner').classList.add('hidden'); }
@@ -1082,7 +1148,9 @@ function playChime(){
 }
 
 function renderHome(){
-  const current = getCurrentSleep();
+  const active = getActiveTimer();
+  const category = active ? active.type : (state.timerCategory || 'nap');
+  const isSleepCat = (category === 'nap' || category === 'night');
   const pred = predictNextSleep();
   const stateLabel = document.getElementById('home-state-label');
   const big = document.getElementById('home-state-big');
@@ -1094,57 +1162,81 @@ function renderHome(){
   const miniFill = document.getElementById('mini-fill');
   const miniIco = document.getElementById('mini-ico');
   const miniPlay = document.getElementById('mini-play');
+  const ringBounds = document.getElementById('ring-bounds');
 
   notif.classList.add('hidden');
+  renderTimerCatRow();
 
-  const schedule = predictSchedule();
-  renderRingMarkers(schedule);
-  document.getElementById('ring-wake-time').textContent = (()=>{ const w = todayWakeTime(); return w ? fmtTime(w.toISOString()) : '—'; })();
-  document.getElementById('ring-bed-time').textContent = schedule.bedtime ? fmtTime(schedule.bedtime.toISOString()) : '—';
+  if(isSleepCat){
+    ringBounds.style.display = 'flex';
+    const schedule = predictSchedule();
+    renderRingMarkers(schedule);
+    document.getElementById('ring-wake-time').textContent = (()=>{ const w = todayWakeTime(); return w ? fmtTime(w.toISOString()) : '—'; })();
+    document.getElementById('ring-bed-time').textContent = schedule.bedtime ? fmtTime(schedule.bedtime.toISOString()) : '—';
+  } else {
+    ringBounds.style.display = 'none';
+    document.getElementById('ring-markers').innerHTML = '';
+  }
 
-  if(current){
-    stateLabel.textContent = current.type==='night' ? 'DORMINDO (NOITE)' : 'COCHILANDO';
-    big.textContent = '😴 Dormindo desde ' + fmtTime(current.start);
-    sub.textContent = 'Toque em "Acordou" quando ela(e) despertar.';
-    num.textContent = fmtDur(new Date()-new Date(current.start));
-    unit.textContent = 'tempo de sono até agora';
+  if(active){
+    const elapsedMs = new Date() - new Date(active.start);
+    stateLabel.textContent = TYPE_LABELS[category].toUpperCase() + ' EM ANDAMENTO';
+    big.textContent = TYPE_ICONS[category] + ' ' + TYPE_LABELS[category] + ' desde ' + fmtTime(active.start);
+    sub.textContent = 'Toque em ■ quando terminar.';
+    num.textContent = fmtDur(elapsedMs);
+    unit.textContent = 'tempo decorrido';
     setRing(1);
-    miniIco.textContent = '😴';
-    miniLabel.textContent = 'Dormindo há ' + fmtDur(new Date()-new Date(current.start));
+    miniIco.textContent = TYPE_ICONS[category];
+    miniLabel.textContent = TYPE_LABELS[category] + ' há ' + fmtDur(elapsedMs);
     miniFill.style.width = '100%';
     miniPlay.textContent = '■';
-    scheduleAlarm(null);
+    // o alarme de previsão de soneca é pausado só quando o que está rodando é o próprio sono
+    scheduleAlarm(isSleepCat ? null : pred);
   } else {
-    stateLabel.textContent = 'STATUS ATUAL';
-    big.textContent = '🐝 Acordado(a)';
-    const awakeSince = pred ? pred.awakeSince : null;
-    sub.textContent = awakeSince ? 'Acordado(a) desde ' + fmtTime(awakeSince.toISOString()) : 'Comece registrando a primeira soneca.';
-    miniIco.textContent = '☀️';
+    miniIco.textContent = TYPE_ICONS[category];
     miniPlay.textContent = '▶';
-    if(pred){
-      const diffMin = Math.round((pred.predicted - new Date())/60000);
-      const elapsedMin = pred.ww - diffMin;
-      setRing(elapsedMin / pred.ww);
-      miniFill.style.width = Math.max(0,Math.min(100, (elapsedMin/pred.ww)*100)) + '%';
-      if(diffMin <= 0){
-        num.textContent='Agora'; unit.textContent='janela de sono ideal já começou';
-        miniLabel.textContent = 'Soneca prevista agora';
-      } else {
-        num.textContent = diffMin; unit.textContent = 'min até a próxima soneca prevista (~'+fmtTime(pred.predicted.toISOString())+')';
-        miniLabel.textContent = 'Soneca em '+diffMin+' min · '+fmtTime(pred.predicted.toISOString());
-        if(diffMin <= 30){
-          document.getElementById('home-notif-title').textContent = (state.baby.icon||'🐝') + ' ' + state.baby.name + ' está começando a ficar cansado(a)…';
-          document.getElementById('home-notif-body').textContent = diffMin+' min para a soneca! Evite atividades agitadas e fique de olho nos sinais de sono 🧸';
-          notif.classList.remove('hidden');
+
+    if(isSleepCat){
+      stateLabel.textContent = 'STATUS ATUAL';
+      big.textContent = '🐝 Acordado(a)';
+      const awakeSince = pred ? pred.awakeSince : null;
+      sub.textContent = awakeSince ? 'Acordado(a) desde ' + fmtTime(awakeSince.toISOString()) : 'Comece registrando a primeira soneca.';
+      if(pred){
+        const diffMin = Math.round((pred.predicted - new Date())/60000);
+        const elapsedMin = pred.ww - diffMin;
+        setRing(elapsedMin / pred.ww);
+        miniFill.style.width = Math.max(0,Math.min(100, (elapsedMin/pred.ww)*100)) + '%';
+        if(diffMin <= 0){
+          num.textContent='Agora'; unit.textContent='janela de sono ideal já começou';
+          miniLabel.textContent = 'Soneca prevista agora';
+        } else {
+          num.textContent = diffMin; unit.textContent = 'min até a próxima soneca prevista (~'+fmtTime(pred.predicted.toISOString())+')';
+          miniLabel.textContent = 'Soneca em '+diffMin+' min · '+fmtTime(pred.predicted.toISOString());
+          if(diffMin <= 30){
+            document.getElementById('home-notif-title').textContent = (state.baby.icon||'🐝') + ' ' + state.baby.name + ' está começando a ficar cansado(a)…';
+            document.getElementById('home-notif-body').textContent = diffMin+' min para a soneca! Evite atividades agitadas e fique de olho nos sinais de sono 🧸';
+            notif.classList.remove('hidden');
+          }
         }
+        scheduleAlarm(pred);
+      } else {
+        num.textContent='--'; unit.textContent='registre um sono para começar as previsões';
+        miniLabel.textContent = 'Registre uma soneca para começar as previsões';
+        miniFill.style.width='0%';
+        setRing(0);
+        scheduleAlarm(null);
       }
-      scheduleAlarm(pred);
     } else {
-      num.textContent='--'; unit.textContent='registre um sono para começar as previsões';
-      miniLabel.textContent = 'Registre uma soneca para começar as previsões';
-      miniFill.style.width='0%';
+      stateLabel.textContent = 'PRONTO PARA CRONOMETRAR';
+      big.textContent = TYPE_ICONS[category] + ' ' + TYPE_LABELS[category];
+      sub.textContent = 'Toque em ▶ para cronometrar agora.';
+      num.textContent = '--';
+      unit.textContent = 'toque em ▶ para iniciar';
+      miniLabel.textContent = 'Toque para iniciar: ' + TYPE_LABELS[category];
+      miniFill.style.width = '0%';
       setRing(0);
-      scheduleAlarm(null);
+      // o alarme de previsão de soneca continua ativo em paralelo, mesmo com outra categoria selecionada
+      scheduleAlarm(pred);
     }
   }
 
