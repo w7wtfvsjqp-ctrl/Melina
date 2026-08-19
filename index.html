@@ -171,7 +171,21 @@
     position:absolute; right:-30px; top:-30px; width:160px;height:160px;
     background: conic-gradient(from 0deg, var(--yellow), transparent 40%);
     opacity:.18; border-radius:50%;
+    pointer-events:none;
   }
+  .timer-cat-row-wrap{ position:relative; z-index:1; margin:0 -20px; }
+  .timer-cat-row-wrap::before{
+    content:""; position:absolute; top:0; left:0; bottom:0; width:28px; pointer-events:none; z-index:2;
+    background: linear-gradient(to right, var(--black), transparent);
+    opacity:.9; transition:opacity .2s ease;
+  }
+  .timer-cat-row-wrap::after{
+    content:""; position:absolute; top:0; right:0; bottom:0; width:28px; pointer-events:none; z-index:2;
+    background: linear-gradient(to left, var(--black), transparent);
+    opacity:.9; transition:opacity .2s ease;
+  }
+  .timer-cat-row-wrap.at-start::before{ opacity:0; }
+  .timer-cat-row-wrap.at-end::after{ opacity:0; }
   .hero-top-row{ display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
   .hero-avatar{
     width:36px;height:36px;border-radius:50%; background:var(--yellow); color:var(--black);
@@ -225,8 +239,9 @@
   .hero-quick-row button.on{ background:var(--yellow); }
 
   .timer-cat-row{
-    display:flex; gap:8px; overflow-x:auto; padding:12px 2px 2px; margin:0 -4px;
+    display:flex; gap:8px; overflow-x:auto; padding:12px 20px 4px;
     -ms-overflow-style:none; scrollbar-width:none;
+    -webkit-overflow-scrolling:touch; touch-action:pan-x; overscroll-behavior-x:contain;
   }
   .timer-cat-row::-webkit-scrollbar{ display:none; }
   .cat-chip{
@@ -528,7 +543,9 @@
           <button class="alarm-toggle" id="alarm-toggle" onclick="toggleAlarm()" title="Ativar alarme de soneca">🔕</button>
         </div>
 
-        <div class="timer-cat-row" id="timer-cat-row"></div>
+        <div class="timer-cat-row-wrap at-start" id="timer-cat-row-wrap">
+          <div class="timer-cat-row" id="timer-cat-row"></div>
+        </div>
 
         <div class="ring-wrap">
           <svg class="ring-svg" viewBox="0 0 210 210">
@@ -963,6 +980,7 @@ function renderTimerCatRow(){
       <span class="cc-ico">${TYPE_ICONS[t]}</span><span class="cc-label">${TYPE_LABELS[t]}</span>
     </button>
   `).join('');
+  requestAnimationFrame(updateTimerCatFade);
 }
 function selectTimerCategory(t){
   if(getActiveTimer()) return; // não é possível trocar de categoria com o cronômetro rodando
@@ -970,6 +988,20 @@ function selectTimerCategory(t){
   saveState();
   renderHome();
 }
+function updateTimerCatFade(){
+  const row = document.getElementById('timer-cat-row');
+  const wrap = document.getElementById('timer-cat-row-wrap');
+  if(!row || !wrap) return;
+  const maxScroll = row.scrollWidth - row.clientWidth;
+  wrap.classList.toggle('at-start', row.scrollLeft <= 2);
+  wrap.classList.toggle('at-end', row.scrollLeft >= maxScroll - 2);
+}
+(function initTimerCatScrollHint(){
+  const row = document.getElementById('timer-cat-row');
+  if(!row) return;
+  row.addEventListener('scroll', updateTimerCatFade, { passive:true });
+  window.addEventListener('resize', updateTimerCatFade);
+})();
 
 function fmtTime(iso){ return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
 function fmtDur(ms){
